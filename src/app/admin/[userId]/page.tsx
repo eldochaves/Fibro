@@ -6,6 +6,7 @@ import { PrintButton } from "@/components/PrintButton";
 import { SeverityChart, type ChartPoint } from "@/components/SeverityChart";
 import { AdminPatientEditor } from "./AdminPatientEditor";
 import { DeleteAssessmentButton } from "./DeleteAssessmentButton";
+import { formatCPF, formatPhone } from "@/lib/masks";
 import {
   BODY_AREAS,
   SSS_SEVERITY_ITEMS,
@@ -29,7 +30,7 @@ export default async function PatientDetailPage({
   const [{ data: profile }, { data: assessments }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, full_name, email, birth_date, phone")
+      .select("id, full_name, email, cpf, birth_date, phone")
       .eq("id", userId)
       .maybeSingle(),
     supabase
@@ -69,16 +70,18 @@ export default async function PatientDetailPage({
             <PrintButton />
           </div>
           <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
+            {profile.cpf && <span>CPF: {formatCPF(profile.cpf)}</span>}
             {profile.birth_date && (
               <span>Nascimento: {formatDate(profile.birth_date)}</span>
             )}
-            {profile.phone && <span>Telefone: {profile.phone}</span>}
+            {profile.phone && <span>Telefone: {formatPhone(profile.phone)}</span>}
           </div>
           <div className="mt-4">
             <AdminPatientEditor
               profile={{
                 id: profile.id,
                 full_name: profile.full_name,
+                cpf: profile.cpf,
                 birth_date: profile.birth_date,
                 phone: profile.phone,
               }}

@@ -37,9 +37,10 @@ export async function saveAssessment(answers: FibroAnswers) {
   return { ok: true as const, result };
 }
 
-/** Atualiza dados básicos do perfil do paciente. */
+/** Atualiza/cria os dados do perfil do paciente. */
 export async function updateProfile(data: {
   full_name?: string;
+  cpf?: string | null;
   birth_date?: string | null;
   phone?: string | null;
 }) {
@@ -49,14 +50,18 @@ export async function updateProfile(data: {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({
+  // upsert garante que a linha exista mesmo se o trigger não a tiver criado
+  const { error } = await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      email: user.email,
       full_name: data.full_name,
+      cpf: data.cpf || null,
       birth_date: data.birth_date || null,
       phone: data.phone || null,
-    })
-    .eq("id", user.id);
+    },
+    { onConflict: "id" }
+  );
 
   return error ? { ok: false as const, error: error.message } : { ok: true as const };
 }
@@ -79,7 +84,12 @@ async function requireAdmin() {
 /** Médico edita os dados cadastrais de um paciente. */
 export async function adminUpdateProfile(
   userId: string,
-  data: { full_name?: string; birth_date?: string | null; phone?: string | null }
+  data: {
+    full_name?: string;
+    cpf?: string | null;
+    birth_date?: string | null;
+    phone?: string | null;
+  }
 ) {
   const supabase = await requireAdmin();
 
@@ -87,6 +97,7 @@ export async function adminUpdateProfile(
     .from("profiles")
     .update({
       full_name: data.full_name,
+      cpf: data.cpf || null,
       birth_date: data.birth_date || null,
       phone: data.phone || null,
     })

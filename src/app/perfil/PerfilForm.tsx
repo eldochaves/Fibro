@@ -3,30 +3,43 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateProfile } from "@/app/actions";
+import { formatCPF, formatPhone, isValidCPF } from "@/lib/masks";
 import type { Profile } from "@/lib/session";
 
 export function PerfilForm({
   profile,
+  defaultName,
   firstTime,
 }: {
   profile: Profile | null;
+  defaultName?: string;
   firstTime: boolean;
 }) {
   const router = useRouter();
-  const [fullName, setFullName] = useState(profile?.full_name ?? "");
+  const [fullName, setFullName] = useState(
+    profile?.full_name ?? defaultName ?? ""
+  );
+  const [cpf, setCpf] = useState(formatCPF(profile?.cpf ?? ""));
   const [birthDate, setBirthDate] = useState(profile?.birth_date ?? "");
-  const [phone, setPhone] = useState(profile?.phone ?? "");
+  const [phone, setPhone] = useState(formatPhone(profile?.phone ?? ""));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError(null);
+
+    if (!isValidCPF(cpf)) {
+      setError("CPF inválido. Confira os números digitados.");
+      return;
+    }
+
+    setSaving(true);
     const res = await updateProfile({
       full_name: fullName.trim(),
+      cpf: cpf.replace(/\D/g, ""),
       birth_date: birthDate || null,
-      phone: phone.trim() || null,
+      phone: phone.replace(/\D/g, "") || null,
     });
     setSaving(false);
     if (res.ok) {
@@ -54,6 +67,21 @@ export function PerfilForm({
       </div>
 
       <div>
+        <label className="label" htmlFor="cpf">
+          CPF
+        </label>
+        <input
+          id="cpf"
+          className="input"
+          value={cpf}
+          onChange={(e) => setCpf(formatCPF(e.target.value))}
+          required
+          inputMode="numeric"
+          placeholder="000.000.000-00"
+        />
+      </div>
+
+      <div>
         <label className="label" htmlFor="birthDate">
           Data de nascimento
         </label>
@@ -77,7 +105,7 @@ export function PerfilForm({
           type="tel"
           className="input"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => setPhone(formatPhone(e.target.value))}
           autoComplete="tel"
           inputMode="tel"
           placeholder="(00) 00000-0000"

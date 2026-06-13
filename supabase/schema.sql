@@ -10,6 +10,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   full_name text,
   email text,
+  cpf text,
   birth_date date,
   phone text,
   created_at timestamptz not null default now()

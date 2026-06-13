@@ -11,6 +11,11 @@ export default async function PerfilPage() {
 
   const firstTime = !isProfileComplete(profile);
 
+  // Importa o nome da conta Google, caso o perfil ainda não tenha
+  const meta = user.user_metadata ?? {};
+  const defaultName =
+    (meta.full_name as string) || (meta.name as string) || "";
+
   return (
     <>
       <Header email={user.email} />
@@ -23,7 +28,11 @@ export default async function PerfilPage() {
             ? "Antes de começar, confirme alguns dados para o seu médico identificar a sua avaliação."
             : "Atualize seus dados de cadastro."}
         </p>
-        <PerfilForm profile={profile} firstTime={firstTime} />
+        <PerfilForm
+          profile={profile}
+          defaultName={defaultName}
+          firstTime={firstTime}
+        />
       </main>
     </>
   );

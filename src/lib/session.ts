@@ -5,6 +5,7 @@ export interface Profile {
   id: string;
   full_name: string | null;
   email: string | null;
+  cpf: string | null;
   birth_date: string | null;
   phone: string | null;
 }
@@ -24,7 +25,7 @@ export async function getContext() {
     supabase.rpc("is_admin"),
     supabase
       .from("profiles")
-      .select("id, full_name, email, birth_date, phone")
+      .select("id, full_name, email, cpf, birth_date, phone")
       .eq("id", user.id)
       .maybeSingle(),
   ]);
@@ -37,7 +38,7 @@ export async function getContext() {
   };
 }
 
-/** Perfil considerado completo quando há nome e data de nascimento. */
+/** Perfil considerado completo quando há nome, CPF e data de nascimento. */
 export function isProfileComplete(profile: Profile | null): boolean {
-  return Boolean(profile?.full_name && profile?.birth_date);
+  return Boolean(profile?.full_name && profile?.cpf && profile?.birth_date);
 }

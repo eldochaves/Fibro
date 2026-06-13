@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminUpdateProfile } from "@/app/actions";
+import { formatCPF, formatPhone, isValidCPF } from "@/lib/masks";
 
 interface EditableProfile {
   id: string;
   full_name: string | null;
+  cpf: string | null;
   birth_date: string | null;
   phone: string | null;
 }
@@ -15,19 +17,25 @@ export function AdminPatientEditor({ profile }: { profile: EditableProfile }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [fullName, setFullName] = useState(profile.full_name ?? "");
+  const [cpf, setCpf] = useState(formatCPF(profile.cpf ?? ""));
   const [birthDate, setBirthDate] = useState(profile.birth_date ?? "");
-  const [phone, setPhone] = useState(profile.phone ?? "");
+  const [phone, setPhone] = useState(formatPhone(profile.phone ?? ""));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError(null);
+    if (cpf && !isValidCPF(cpf)) {
+      setError("CPF inválido.");
+      return;
+    }
+    setSaving(true);
     const res = await adminUpdateProfile(profile.id, {
       full_name: fullName.trim(),
+      cpf: cpf.replace(/\D/g, "") || null,
       birth_date: birthDate || null,
-      phone: phone.trim() || null,
+      phone: phone.replace(/\D/g, "") || null,
     });
     setSaving(false);
     if (res.ok) {
@@ -67,6 +75,19 @@ export function AdminPatientEditor({ profile }: { profile: EditableProfile }) {
           required
         />
       </div>
+      <div>
+        <label className="label" htmlFor="ed-cpf">
+          CPF
+        </label>
+        <input
+          id="ed-cpf"
+          className="input"
+          value={cpf}
+          onChange={(e) => setCpf(formatCPF(e.target.value))}
+          inputMode="numeric"
+          placeholder="000.000.000-00"
+        />
+      </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className="label" htmlFor="ed-birth">
@@ -90,7 +111,7 @@ export function AdminPatientEditor({ profile }: { profile: EditableProfile }) {
             type="tel"
             className="input"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(formatPhone(e.target.value))}
           />
         </div>
       </div>
