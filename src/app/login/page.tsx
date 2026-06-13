@@ -24,12 +24,6 @@ export default function LoginPage() {
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
-        // O gateway do Supabase (com o novo sistema de chaves) exige a apikey
-        // também na rota de "authorize". A biblioteca não a inclui sozinha,
-        // então adicionamos manualmente para evitar "No API key found".
-        queryParams: {
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        },
       },
     });
     if (error) setError(error.message);
