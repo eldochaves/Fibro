@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
+import { CLINIC_NAME } from "@/lib/config";
 
 export function Header({
   email,
@@ -10,11 +12,24 @@ export function Header({
   return (
     <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-        <Link href={isAdmin ? "/admin" : "/historico"} className="flex items-center gap-2 font-bold">
-          <span className="text-xl">🩺</span>
-          <span className="text-sm sm:text-base">
-            Fibromialgia {isAdmin && <span className="text-brand-600">· Médico</span>}
-          </span>
+        <Link
+          href={isAdmin ? "/admin" : "/historico"}
+          className="flex items-center gap-2"
+          aria-label={CLINIC_NAME}
+        >
+          <Image
+            src="/logo.png"
+            alt={CLINIC_NAME}
+            width={150}
+            height={42}
+            priority
+            className="h-8 w-auto sm:h-9"
+          />
+          {isAdmin && (
+            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">
+              Médico
+            </span>
+          )}
         </Link>
         <div className="flex items-center gap-3">
           {email && (

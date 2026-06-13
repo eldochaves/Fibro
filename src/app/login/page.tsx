@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { CLINIC_NAME } from "@/lib/config";
 
 type Mode = "signin" | "signup";
 
@@ -69,6 +71,14 @@ export default function LoginPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-12">
       <div className="text-center">
+        <Image
+          src="/logo.png"
+          alt={CLINIC_NAME}
+          width={260}
+          height={73}
+          priority
+          className="mx-auto mb-6 h-auto w-60 max-w-full"
+        />
         <h1 className="text-xl font-bold">
           {mode === "signin" ? "Entrar" : "Criar conta"}
         </h1>

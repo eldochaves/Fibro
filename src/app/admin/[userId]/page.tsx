@@ -4,6 +4,8 @@ import { Header } from "@/components/Header";
 import { getContext } from "@/lib/session";
 import { PrintButton } from "@/components/PrintButton";
 import { SeverityChart, type ChartPoint } from "@/components/SeverityChart";
+import { AdminPatientEditor } from "./AdminPatientEditor";
+import { DeleteAssessmentButton } from "./DeleteAssessmentButton";
 import {
   BODY_AREAS,
   SSS_SEVERITY_ITEMS,
@@ -71,6 +73,16 @@ export default async function PatientDetailPage({
               <span>Nascimento: {formatDate(profile.birth_date)}</span>
             )}
             {profile.phone && <span>Telefone: {profile.phone}</span>}
+          </div>
+          <div className="mt-4">
+            <AdminPatientEditor
+              profile={{
+                id: profile.id,
+                full_name: profile.full_name,
+                birth_date: profile.birth_date,
+                phone: profile.phone,
+              }}
+            />
           </div>
         </div>
 
@@ -161,6 +173,13 @@ export default async function PatientDetailPage({
                         </li>
                       </ul>
                     </div>
+                  </div>
+
+                  <div className="mt-4 flex justify-end border-t border-slate-100 pt-3">
+                    <DeleteAssessmentButton
+                      assessmentId={a.id}
+                      userId={userId}
+                    />
                   </div>
                 </details>
               );

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   evaluate,
@@ -58,4 +59,56 @@ export async function updateProfile(data: {
     .eq("id", user.id);
 
   return error ? { ok: false as const, error: error.message } : { ok: true as const };
+}
+
+// ---------------------------------------------------------------------
+// Ações do médico (admin) — protegidas por verificação de admin + RLS
+// ---------------------------------------------------------------------
+
+async function requireAdmin() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (!isAdmin) redirect("/historico");
+  return supabase;
+}
+
+/** Médico edita os dados cadastrais de um paciente. */
+export async function adminUpdateProfile(
+  userId: string,
+  data: { full_name?: string; birth_date?: string | null; phone?: string | null }
+) {
+  const supabase = await requireAdmin();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      full_name: data.full_name,
+      birth_date: data.birth_date || null,
+      phone: data.phone || null,
+    })
+    .eq("id", userId);
+
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/admin/${userId}`);
+  revalidatePath("/admin");
+  return { ok: true as const };
+}
+
+/** Médico apaga uma avaliação de um paciente. */
+export async function adminDeleteAssessment(assessmentId: string, userId: string) {
+  const supabase = await requireAdmin();
+
+  const { error } = await supabase
+    .from("assessments")
+    .delete()
+    .eq("id", assessmentId);
+
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/admin/${userId}`);
+  revalidatePath("/admin");
+  return { ok: true as const };
 }

@@ -88,6 +88,13 @@ create policy "profiles_update_own"
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
+-- Admin (médico) pode editar os dados de qualquer paciente
+drop policy if exists "profiles_update_admin" on public.profiles;
+create policy "profiles_update_admin"
+  on public.profiles for update
+  using (public.is_admin())
+  with check (public.is_admin());
+
 -- ASSESSMENTS --------------------------------------------------------
 drop policy if exists "assessments_select_own_or_admin" on public.assessments;
 create policy "assessments_select_own_or_admin"
@@ -99,8 +106,19 @@ create policy "assessments_insert_own"
   on public.assessments for insert
   with check (auth.uid() = user_id);
 
--- ADMIN_EMAILS: ninguém lê/escreve via API (apenas a função is_admin,
--- que é security definer, acessa). Sem políticas = sem acesso direto.
+-- Admin (médico) pode apagar avaliações
+drop policy if exists "assessments_delete_admin" on public.assessments;
+create policy "assessments_delete_admin"
+  on public.assessments for delete
+  using (public.is_admin());
+
+-- ADMIN_EMAILS: por padrão ninguém lê via API. Liberamos a leitura apenas
+-- para administradores, para o app conseguir excluir os médicos da lista
+-- de pacientes.
+drop policy if exists "admin_emails_select_admin" on public.admin_emails;
+create policy "admin_emails_select_admin"
+  on public.admin_emails for select
+  using (public.is_admin());
 
 -- ---------------------------------------------------------------------
 -- 5. Trigger: cria automaticamente um profile ao criar usuário

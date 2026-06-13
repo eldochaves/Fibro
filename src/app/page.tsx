@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CLINIC_NAME } from "@/lib/config";
@@ -27,10 +28,17 @@ export default async function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 px-6 py-12">
       <div className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-3xl">
-          🩺
-        </div>
-        <h1 className="text-2xl font-bold text-slate-900">{CLINIC_NAME}</h1>
+        <Image
+          src="/logo.png"
+          alt={CLINIC_NAME}
+          width={280}
+          height={78}
+          priority
+          className="mx-auto mb-6 h-auto w-64 max-w-full"
+        />
+        <h1 className="text-xl font-bold text-slate-900">
+          Avaliação de Fibromialgia
+        </h1>
         <p className="mt-2 text-slate-600">
           Responda ao questionário (critérios ACR 2016) enquanto aguarda a
           consulta. Leva poucos minutos e ajuda no seu acompanhamento.

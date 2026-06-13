@@ -22,15 +22,23 @@ export default async function AdminPage() {
   const { supabase, user, isAdmin } = await getContext();
   if (!isAdmin) redirect("/historico");
 
-  const [{ data: profiles }, { data: assessments }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, email"),
-    supabase
-      .from("assessments")
-      .select("user_id, created_at, severity_score, meets_criteria")
-      .order("created_at", { ascending: false }),
-  ]);
+  const [{ data: profiles }, { data: assessments }, { data: admins }] =
+    await Promise.all([
+      supabase.from("profiles").select("id, full_name, email"),
+      supabase
+        .from("assessments")
+        .select("user_id, created_at, severity_score, meets_criteria")
+        .order("created_at", { ascending: false }),
+      supabase.from("admin_emails").select("email"),
+    ]);
 
-  const profileList = (profiles ?? []) as ProfileRow[];
+  // Emails de médicos não devem aparecer como pacientes
+  const adminEmails = new Set(
+    (admins ?? []).map((a: { email: string }) => a.email.toLowerCase())
+  );
+  const profileList = ((profiles ?? []) as ProfileRow[]).filter(
+    (p) => !p.email || !adminEmails.has(p.email.toLowerCase())
+  );
   const assessmentList = (assessments ?? []) as AssessmentRow[];
 
   // Agrupa avaliações por paciente (já vêm da mais recente para a mais antiga)
