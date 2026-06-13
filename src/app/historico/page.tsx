@@ -33,6 +33,23 @@ export default async function HistoricoPage() {
           </Link>
         </div>
 
+        {profile?.pain_diary_enabled && (
+          <Link
+            href="/diario"
+            className="card mb-6 flex items-center justify-between hover:border-brand-300"
+          >
+            <div>
+              <div className="text-sm font-semibold text-slate-800">
+                📒 Diário de Dor
+              </div>
+              <div className="text-xs text-slate-500">
+                Registre seus episódios de dor
+              </div>
+            </div>
+            <span className="text-brand-600">→</span>
+          </Link>
+        )}
+
         {list.length === 0 ? (
           <div className="card text-center">
             <p className="mb-4 text-slate-600">

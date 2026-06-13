@@ -8,6 +8,7 @@ export interface Profile {
   cpf: string | null;
   birth_date: string | null;
   phone: string | null;
+  pain_diary_enabled: boolean;
 }
 
 /**
@@ -25,7 +26,7 @@ export async function getContext() {
     supabase.rpc("is_admin"),
     supabase
       .from("profiles")
-      .select("id, full_name, email, cpf, birth_date, phone")
+      .select("id, full_name, email, cpf, birth_date, phone, pain_diary_enabled")
       .eq("id", user.id)
       .maybeSingle(),
   ]);

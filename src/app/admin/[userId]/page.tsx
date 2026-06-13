@@ -6,6 +6,8 @@ import { PrintButton } from "@/components/PrintButton";
 import { SeverityChart, type ChartPoint } from "@/components/SeverityChart";
 import { AdminPatientEditor } from "./AdminPatientEditor";
 import { DeleteAssessmentButton } from "./DeleteAssessmentButton";
+import { PainDiaryToggle } from "./PainDiaryToggle";
+import { PainEpisodeList, type PainEpisode } from "@/components/PainEpisodeList";
 import { formatCPF, formatPhone } from "@/lib/masks";
 import {
   BODY_AREAS,
@@ -27,21 +29,33 @@ export default async function PatientDetailPage({
   const { supabase, user, isAdmin } = await getContext();
   if (!isAdmin) redirect("/historico");
 
-  const [{ data: profile }, { data: assessments }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("id, full_name, email, cpf, birth_date, phone")
-      .eq("id", userId)
-      .maybeSingle(),
-    supabase
-      .from("assessments")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false }),
-  ]);
+  const [{ data: profile }, { data: assessments }, { data: episodes }] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select(
+          "id, full_name, email, cpf, birth_date, phone, pain_diary_enabled"
+        )
+        .eq("id", userId)
+        .maybeSingle(),
+      supabase
+        .from("assessments")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("pain_episodes")
+        .select(
+          "id, episode_date, start_time, activity, location, eva, radiation, end_time"
+        )
+        .eq("user_id", userId)
+        .order("episode_date", { ascending: false })
+        .order("created_at", { ascending: false }),
+    ]);
 
   if (!profile) notFound();
   const list = assessments ?? [];
+  const painEpisodes = episodes ?? [];
 
   // Pontos do gráfico em ordem cronológica crescente
   const chartPoints: ChartPoint[] = [...list]
@@ -85,6 +99,12 @@ export default async function PatientDetailPage({
                 birth_date: profile.birth_date,
                 phone: profile.phone,
               }}
+            />
+          </div>
+          <div className="mt-4">
+            <PainDiaryToggle
+              userId={profile.id}
+              initialEnabled={profile.pain_diary_enabled === true}
             />
           </div>
         </div>
@@ -187,6 +207,15 @@ export default async function PatientDetailPage({
                 </details>
               );
             })}
+          </div>
+        )}
+
+        {profile.pain_diary_enabled && (
+          <div className="mt-8">
+            <h2 className="mb-3 text-sm font-semibold text-slate-700">
+              Diário de Dor ({painEpisodes.length})
+            </h2>
+            <PainEpisodeList episodes={painEpisodes as PainEpisode[]} />
           </div>
         )}
       </main>

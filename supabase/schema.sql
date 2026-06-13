@@ -13,6 +13,7 @@ create table if not exists public.profiles (
   cpf text,
   birth_date date,
   phone text,
+  pain_diary_enabled boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -120,6 +121,54 @@ drop policy if exists "admin_emails_select_admin" on public.admin_emails;
 create policy "admin_emails_select_admin"
   on public.admin_emails for select
   using (public.is_admin());
+
+-- ---------------------------------------------------------------------
+-- 4b. Diário de Dor (episódios) + RLS
+-- ---------------------------------------------------------------------
+create table if not exists public.pain_episodes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  episode_date date not null,
+  start_time text,
+  activity text,
+  location text,
+  eva smallint check (eva >= 0 and eva <= 10),
+  radiation text,
+  end_time text
+);
+
+create index if not exists pain_episodes_user_id_idx on public.pain_episodes (user_id);
+create index if not exists pain_episodes_date_idx on public.pain_episodes (episode_date desc);
+
+alter table public.pain_episodes enable row level security;
+
+drop policy if exists "pain_select_own_or_admin" on public.pain_episodes;
+create policy "pain_select_own_or_admin"
+  on public.pain_episodes for select
+  using (auth.uid() = user_id or public.is_admin());
+
+drop policy if exists "pain_insert_own_enabled" on public.pain_episodes;
+create policy "pain_insert_own_enabled"
+  on public.pain_episodes for insert
+  with check (
+    auth.uid() = user_id
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.pain_diary_enabled = true
+    )
+  );
+
+drop policy if exists "pain_update_own" on public.pain_episodes;
+create policy "pain_update_own"
+  on public.pain_episodes for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "pain_delete_own_or_admin" on public.pain_episodes;
+create policy "pain_delete_own_or_admin"
+  on public.pain_episodes for delete
+  using (auth.uid() = user_id or public.is_admin());
 
 -- ---------------------------------------------------------------------
 -- 5. Trigger: cria automaticamente um profile ao criar usuário
