@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { updateProfile } from "@/app/actions";
 import { formatCPF, formatPhone, isValidCPF } from "@/lib/masks";
 import type { Profile } from "@/lib/session";
@@ -15,7 +14,6 @@ export function PerfilForm({
   defaultName?: string;
   firstTime: boolean;
 }) {
-  const router = useRouter();
   const [fullName, setFullName] = useState(
     profile?.full_name ?? defaultName ?? ""
   );
@@ -40,12 +38,11 @@ export function PerfilForm({
       cpf: cpf.replace(/\D/g, ""),
       birth_date: birthDate || null,
       phone: phone.replace(/\D/g, "") || null,
+      redirectTo: firstTime ? "/questionario" : "/historico",
     });
+    // Só chega aqui se NÃO houve redirect no servidor (ou seja, deu erro)
     setSaving(false);
-    if (res.ok) {
-      router.push(firstTime ? "/questionario" : "/historico");
-      router.refresh();
-    } else {
+    if (res && !res.ok) {
       setError(res.error ?? "Não foi possível salvar. Tente novamente.");
     }
   }

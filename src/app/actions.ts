@@ -43,6 +43,7 @@ export async function updateProfile(data: {
   cpf?: string | null;
   birth_date?: string | null;
   phone?: string | null;
+  redirectTo?: string;
 }) {
   const supabase = await createClient();
   const {
@@ -63,7 +64,11 @@ export async function updateProfile(data: {
     { onConflict: "id" }
   );
 
-  return error ? { ok: false as const, error: error.message } : { ok: true as const };
+  if (error) return { ok: false as const, error: error.message };
+
+  // Redirect no servidor evita a condição de corrida do router.push no cliente
+  if (data.redirectTo) redirect(data.redirectTo);
+  return { ok: true as const };
 }
 
 // ---------------------------------------------------------------------
