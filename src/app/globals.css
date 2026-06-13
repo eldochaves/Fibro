@@ -31,3 +31,22 @@ body {
     @apply mb-1 block text-sm font-medium text-slate-700;
   }
 }
+
+/* Impressão / exportar PDF (painel do médico) */
+@media print {
+  header {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .card {
+    box-shadow: none;
+    border-color: #cbd5e1;
+    break-inside: avoid;
+  }
+  /* Expande todas as avaliações no PDF, mesmo as recolhidas na tela */
+  details:not([open]) > *:not(summary) {
+    display: block !important;
+  }
+}

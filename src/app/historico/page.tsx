@@ -1,16 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/Header";
+import { getContext, isProfileComplete } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function HistoricoPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const { supabase, user, isAdmin, profile } = await getContext();
+  if (isAdmin) redirect("/admin");
+  if (!isProfileComplete(profile)) redirect("/perfil");
 
   const { data: assessments } = await supabase
     .from("assessments")
@@ -23,7 +21,12 @@ export default async function HistoricoPage() {
     <>
       <Header email={user.email} />
       <main className="mx-auto max-w-3xl px-4 py-6">
-        <div className="mb-6 flex items-center justify-between">
+        {profile?.full_name && (
+          <p className="mb-1 text-sm text-slate-500">
+            Olá, {profile.full_name.split(" ")[0]} 👋
+          </p>
+        )}
+        <div className="mb-6 flex items-center justify-between gap-3">
           <h1 className="text-xl font-bold">Meu histórico</h1>
           <Link href="/questionario" className="btn-primary">
             Nova avaliação
@@ -68,9 +71,17 @@ export default async function HistoricoPage() {
           </ul>
         )}
 
-        <p className="mt-8 text-center text-xs text-slate-400">
-          Ferramenta de triagem (ACR 2016). Não substitui avaliação médica.
-        </p>
+        <div className="mt-8 text-center">
+          <Link
+            href="/perfil"
+            className="text-sm font-medium text-brand-600 underline"
+          >
+            Editar meus dados
+          </Link>
+          <p className="mt-3 text-xs text-slate-400">
+            Ferramenta de triagem (ACR 2016). Não substitui avaliação médica.
+          </p>
+        </div>
       </main>
     </>
   );

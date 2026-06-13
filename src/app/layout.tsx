@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { CLINIC_NAME } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "Avaliação de Fibromialgia",
+  title: CLINIC_NAME,
   description:
     "Questionário de fibromialgia (critérios ACR 2016) para preenchimento na pré-consulta.",
 };

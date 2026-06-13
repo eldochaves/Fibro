@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { CLINIC_NAME } from "@/lib/config";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -10,8 +11,17 @@ export default async function HomePage() {
 
   // Usuário logado vai direto para sua área
   if (user) {
-    const { data: isAdmin } = await supabase.rpc("is_admin");
-    redirect(isAdmin ? "/admin" : "/historico");
+    const [{ data: isAdmin }, { data: profile }] = await Promise.all([
+      supabase.rpc("is_admin"),
+      supabase
+        .from("profiles")
+        .select("full_name, birth_date")
+        .eq("id", user.id)
+        .maybeSingle(),
+    ]);
+    if (isAdmin) redirect("/admin");
+    const complete = Boolean(profile?.full_name && profile?.birth_date);
+    redirect(complete ? "/historico" : "/perfil");
   }
 
   return (
@@ -20,9 +30,7 @@ export default async function HomePage() {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-3xl">
           🩺
         </div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Avaliação de Fibromialgia
-        </h1>
+        <h1 className="text-2xl font-bold text-slate-900">{CLINIC_NAME}</h1>
         <p className="mt-2 text-slate-600">
           Responda ao questionário (critérios ACR 2016) enquanto aguarda a
           consulta. Leva poucos minutos e ajuda no seu acompanhamento.

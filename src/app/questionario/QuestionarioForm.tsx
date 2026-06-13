@@ -137,6 +137,7 @@ export function QuestionarioForm() {
                       key={area.id}
                       type="button"
                       onClick={() => toggleArea(area.id)}
+                      aria-pressed={active}
                       className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition ${
                         active
                           ? "border-brand-500 bg-brand-50 text-brand-700"
@@ -193,6 +194,7 @@ export function QuestionarioForm() {
                       onClick={() =>
                         setSeverity((s) => ({ ...s, [item.id]: opt.value }))
                       }
+                      aria-pressed={active}
                       className={`rounded-xl border px-3 py-3 text-sm font-medium transition ${
                         active
                           ? "border-brand-500 bg-brand-50 text-brand-700"
@@ -229,6 +231,7 @@ export function QuestionarioForm() {
                   onClick={() =>
                     setSymptoms((s) => ({ ...s, [item.id]: !s[item.id] }))
                   }
+                  aria-pressed={active}
                   className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition ${
                     active
                       ? "border-brand-500 bg-brand-50 text-brand-700"
@@ -266,6 +269,7 @@ export function QuestionarioForm() {
                     key={opt.label}
                     type="button"
                     onClick={() => setThreeMonths(opt.v)}
+                    aria-pressed={active}
                     className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
                       active
                         ? "border-brand-500 bg-brand-50 text-brand-700"

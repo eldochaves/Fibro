@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/Header";
+import { getContext } from "@/lib/session";
+import { PrintButton } from "@/components/PrintButton";
+import { SeverityChart, type ChartPoint } from "@/components/SeverityChart";
 import {
   BODY_AREAS,
   SSS_SEVERITY_ITEMS,
@@ -19,13 +21,7 @@ export default async function PatientDetailPage({
   params: Promise<{ userId: string }>;
 }) {
   const { userId } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: isAdmin } = await supabase.rpc("is_admin");
+  const { supabase, user, isAdmin } = await getContext();
   if (!isAdmin) redirect("/historico");
 
   const [{ data: profile }, { data: assessments }] = await Promise.all([
@@ -44,22 +40,32 @@ export default async function PatientDetailPage({
   if (!profile) notFound();
   const list = assessments ?? [];
 
+  // Pontos do gráfico em ordem cronológica crescente
+  const chartPoints: ChartPoint[] = [...list]
+    .reverse()
+    .map((a) => ({ date: a.created_at, score: a.severity_score }));
+
   return (
     <>
       <Header email={user.email} isAdmin />
       <main className="mx-auto max-w-3xl px-4 py-6">
         <Link
           href="/admin"
-          className="mb-4 inline-block text-sm font-medium text-brand-600"
+          className="mb-4 inline-block text-sm font-medium text-brand-600 print:hidden"
         >
           ← Voltar para pacientes
         </Link>
 
         <div className="card mb-6">
-          <h1 className="text-xl font-bold">
-            {profile.full_name || "(sem nome)"}
-          </h1>
-          <p className="text-sm text-slate-500">{profile.email}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-xl font-bold">
+                {profile.full_name || "(sem nome)"}
+              </h1>
+              <p className="text-sm text-slate-500">{profile.email}</p>
+            </div>
+            <PrintButton />
+          </div>
           <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
             {profile.birth_date && (
               <span>Nascimento: {formatDate(profile.birth_date)}</span>
@@ -67,6 +73,15 @@ export default async function PatientDetailPage({
             {profile.phone && <span>Telefone: {profile.phone}</span>}
           </div>
         </div>
+
+        {chartPoints.length >= 2 && (
+          <div className="card mb-6">
+            <h2 className="mb-2 text-sm font-semibold text-slate-700">
+              Evolução
+            </h2>
+            <SeverityChart points={chartPoints} />
+          </div>
+        )}
 
         <h2 className="mb-3 text-sm font-semibold text-slate-700">
           Avaliações ({list.length})
