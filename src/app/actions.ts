@@ -171,6 +171,7 @@ export async function adminSetPainDiary(userId: string, enabled: boolean) {
 
   // Email (Resend) — silenciosamente ignorado se não configurado
   let emailStatus: "sent" | "skipped" | "error" = "skipped";
+  let emailError: string | undefined;
   if (profile?.email) {
     const r = await sendEmail({
       to: profile.email,
@@ -178,6 +179,7 @@ export async function adminSetPainDiary(userId: string, enabled: boolean) {
       html: emailHtml(firstName, link),
     });
     emailStatus = r.ok ? "sent" : r.skipped ? "skipped" : "error";
+    emailError = r.error;
   }
 
   const whatsappLink = buildWhatsappLink(profile?.phone, message);
@@ -187,6 +189,7 @@ export async function adminSetPainDiary(userId: string, enabled: boolean) {
     enabled,
     notified: true as const,
     emailStatus,
+    emailError,
     whatsappLink,
   };
 }

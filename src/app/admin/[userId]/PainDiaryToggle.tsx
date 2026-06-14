@@ -40,7 +40,10 @@ export function PainDiaryToggle({
       if (res.emailStatus === "sent")
         setEmailStatus("✅ Email enviado ao paciente.");
       else if (res.emailStatus === "error")
-        setEmailStatus("⚠️ Não foi possível enviar o email.");
+        setEmailStatus(
+          "⚠️ Não foi possível enviar o email" +
+            (res.emailError ? `: ${res.emailError}` : ".")
+        );
       else
         setEmailStatus(
           "ℹ️ Email não configurado (defina RESEND_API_KEY para envio automático)."
