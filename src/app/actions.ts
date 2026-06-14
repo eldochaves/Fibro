@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
-import { buildWhatsappLink } from "@/lib/whatsapp";
+import { buildWhatsappLink, buildMailtoLink } from "@/lib/whatsapp";
 import { CLINIC_NAME, SITE_URL } from "@/lib/config";
 import {
   evaluate,
@@ -169,28 +169,33 @@ export async function adminSetPainDiary(userId: string, enabled: boolean) {
     `Acesse ${link} para registrar seus episódios de dor e traga no retorno. ` +
     `Qualquer dúvida, estamos à disposição.`;
 
-  // Email (Resend) — silenciosamente ignorado se não configurado
+  const emailSubject = `${CLINIC_NAME} — Diário de Dor habilitado`;
+  const emailBody =
+    `Olá ${firstName}!\n\n` +
+    `O Dr. Eldo habilitou para você o Diário de Dor no nosso site.\n` +
+    `Acesse: ${link}\n\n` +
+    `Registre seus episódios de dor e traga no seu retorno.\n\n` +
+    `${CLINIC_NAME} · Reumatologia`;
+
+  // Envio automático por email só acontece se o Resend estiver configurado
+  // (exige domínio verificado). Caso contrário, usamos o link mailto abaixo.
   let emailStatus: "sent" | "skipped" | "error" = "skipped";
-  let emailError: string | undefined;
-  if (profile?.email) {
+  if (profile?.email && process.env.RESEND_API_KEY) {
     const r = await sendEmail({
       to: profile.email,
-      subject: `${CLINIC_NAME} — Diário de Dor habilitado`,
+      subject: emailSubject,
       html: emailHtml(firstName, link),
     });
-    emailStatus = r.ok ? "sent" : r.skipped ? "skipped" : "error";
-    emailError = r.error;
+    emailStatus = r.ok ? "sent" : "error";
   }
-
-  const whatsappLink = buildWhatsappLink(profile?.phone, message);
 
   return {
     ok: true as const,
     enabled,
     notified: true as const,
     emailStatus,
-    emailError,
-    whatsappLink,
+    whatsappLink: buildWhatsappLink(profile?.phone, message),
+    mailtoLink: buildMailtoLink(profile?.email, emailSubject, emailBody),
   };
 }
 

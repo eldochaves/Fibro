@@ -15,14 +15,18 @@ export function PainDiaryToggle({
   const [enabled, setEnabled] = useState(initialEnabled);
   const [loading, setLoading] = useState(false);
   const [waLink, setWaLink] = useState<string | null>(null);
-  const [emailStatus, setEmailStatus] = useState<string | null>(null);
+  const [mailtoLink, setMailtoLink] = useState<string | null>(null);
+  const [autoSent, setAutoSent] = useState(false);
+  const [showNotify, setShowNotify] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function toggle(next: boolean) {
     setLoading(true);
     setError(null);
     setWaLink(null);
-    setEmailStatus(null);
+    setMailtoLink(null);
+    setAutoSent(false);
+    setShowNotify(false);
 
     const res = await adminSetPainDiary(userId, next);
     setLoading(false);
@@ -37,17 +41,9 @@ export function PainDiaryToggle({
 
     if (next && res.notified) {
       setWaLink(res.whatsappLink ?? null);
-      if (res.emailStatus === "sent")
-        setEmailStatus("✅ Email enviado ao paciente.");
-      else if (res.emailStatus === "error")
-        setEmailStatus(
-          "⚠️ Não foi possível enviar o email" +
-            (res.emailError ? `: ${res.emailError}` : ".")
-        );
-      else
-        setEmailStatus(
-          "ℹ️ Email não configurado (defina RESEND_API_KEY para envio automático)."
-        );
+      setMailtoLink(res.mailtoLink ?? null);
+      setAutoSent(res.emailStatus === "sent");
+      setShowNotify(true);
     }
   }
 
@@ -80,24 +76,43 @@ export function PainDiaryToggle({
         </p>
       )}
 
-      {(emailStatus || waLink) && (
+      {showNotify && (
         <div className="mt-3 space-y-2 rounded-lg bg-navy-50 p-3 text-sm">
-          {emailStatus && <p className="text-navy-500">{emailStatus}</p>}
-          {waLink ? (
-            <a
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary w-full"
-              style={{ backgroundColor: "#25D366" }}
-            >
-              Enviar aviso por WhatsApp
-            </a>
-          ) : (
+          <p className="font-medium text-navy-700">
+            Avisar o paciente:
+          </p>
+          {autoSent && (
+            <p className="text-teal-700">✅ Email enviado automaticamente.</p>
+          )}
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            {waLink && (
+              <a
+                href={waLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+                style={{ backgroundColor: "#25D366" }}
+              >
+                💬 Enviar WhatsApp
+              </a>
+            )}
+            {mailtoLink && !autoSent && (
+              <a href={mailtoLink} className="btn-outline">
+                ✉️ Enviar e-mail
+              </a>
+            )}
+          </div>
+
+          {!waLink && !mailtoLink && (
             <p className="text-xs text-navy-400">
-              Sem telefone cadastrado para gerar o link de WhatsApp.
+              Sem telefone ou email cadastrado para avisar o paciente.
             </p>
           )}
+          <p className="text-xs text-navy-400">
+            Os botões abrem o WhatsApp/email com a mensagem pronta — basta
+            enviar.
+          </p>
         </div>
       )}
     </div>
