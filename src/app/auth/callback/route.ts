@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       if (next) return NextResponse.redirect(`${origin}${next}`);
       const { data: isAdmin } = await supabase.rpc("is_admin");
       return NextResponse.redirect(
-        `${origin}${isAdmin ? "/admin" : "/historico"}`
+        `${origin}${isAdmin ? "/admin" : "/inicio"}`
       );
     }
   }

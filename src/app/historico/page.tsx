@@ -22,11 +22,12 @@ export default async function HistoricoPage() {
     <>
       <Header email={user.email} />
       <main className="mx-auto max-w-3xl px-4 py-6">
-        {profile?.full_name && (
-          <p className="mb-1 text-sm text-navy-400">
-            Olá, {profile.full_name.split(" ")[0]} 👋
-          </p>
-        )}
+        <Link
+          href="/inicio"
+          className="mb-4 inline-block text-sm font-medium text-teal-600"
+        >
+          ← Início
+        </Link>
         <div className="mb-6 flex items-center justify-between gap-3">
           <h1 className="font-display text-2xl font-semibold text-navy-800">
             Meu histórico

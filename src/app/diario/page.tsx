@@ -29,7 +29,7 @@ export default async function DiarioPage() {
       <Header email={user.email} />
       <main className="mx-auto max-w-3xl px-4 py-6">
         <Link
-          href="/historico"
+          href="/inicio"
           className="mb-4 inline-block text-sm font-medium text-teal-600"
         >
           ← Voltar

@@ -24,7 +24,7 @@ export default async function HomePage() {
     const complete = Boolean(
       profile?.full_name && profile?.cpf && profile?.birth_date
     );
-    redirect(complete ? "/historico" : "/perfil");
+    redirect(complete ? "/inicio" : "/perfil");
   }
 
   return (

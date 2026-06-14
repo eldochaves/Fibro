@@ -58,7 +58,7 @@ export default function LoginPage() {
           password,
         });
         if (error) throw error;
-        router.push("/historico");
+        router.push("/inicio");
         router.refresh();
       }
     } catch (err) {

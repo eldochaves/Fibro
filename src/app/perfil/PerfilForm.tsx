@@ -38,7 +38,7 @@ export function PerfilForm({
       cpf: cpf.replace(/\D/g, ""),
       birth_date: birthDate || null,
       phone: phone.replace(/\D/g, "") || null,
-      redirectTo: firstTime ? "/questionario" : "/historico",
+      redirectTo: firstTime ? "/questionario" : "/inicio",
     });
     // Só chega aqui se NÃO houve redirect no servidor (ou seja, deu erro)
     setSaving(false);

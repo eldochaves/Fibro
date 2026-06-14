@@ -13,7 +13,7 @@ export function Header({
     <header className="sticky top-0 z-20 border-b border-navy-100/70 bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
         <Link
-          href={isAdmin ? "/admin" : "/historico"}
+          href={isAdmin ? "/admin" : "/inicio"}
           className="flex items-center gap-2.5"
           aria-label={CLINIC_NAME}
         >
