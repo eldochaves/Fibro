@@ -179,6 +179,15 @@ export async function adminDeleteUser(userId: string) {
     };
   }
 
+  // Remove a(s) foto(s) do Storage (não são apagadas em cascata)
+  const { data: files } = await admin.storage.from("avatars").list(userId);
+  if (files && files.length > 0) {
+    await admin.storage
+      .from("avatars")
+      .remove(files.map((f) => `${userId}/${f.name}`));
+  }
+
+  // Apaga a conta — profiles/assessments/pain_episodes caem em cascata
   const { error } = await admin.auth.admin.deleteUser(userId);
   if (error) return { ok: false as const, error: error.message };
 
