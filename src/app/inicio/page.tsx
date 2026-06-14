@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Avatar } from "@/components/Avatar";
 import { getContext, isProfileComplete } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -18,15 +19,20 @@ export default async function InicioPage() {
     <>
       <Header email={user.email} />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <div className="animate-fade-up">
-          <p className="text-sm text-navy-400">Olá{firstName ? `, ${firstName}` : ""} 👋</p>
-          <h1 className="font-display text-2xl font-semibold text-navy-800 sm:text-3xl">
-            O que você gostaria de fazer?
-          </h1>
-          <p className="mt-1 text-navy-500">
-            Escolha uma das opções abaixo para começar.
-          </p>
+        <div className="flex animate-fade-up items-center gap-4">
+          <Avatar url={profile?.avatar_url} name={profile?.full_name} size={56} />
+          <div>
+            <p className="text-sm text-navy-400">
+              Olá{firstName ? `, ${firstName}` : ""} 👋
+            </p>
+            <h1 className="font-display text-2xl font-semibold text-navy-800 sm:text-3xl">
+              O que você gostaria de fazer?
+            </h1>
+          </div>
         </div>
+        <p className="mt-2 text-navy-500">
+          Escolha uma das opções abaixo para começar.
+        </p>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {/* Questionário pré-consulta */}

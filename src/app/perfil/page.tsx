@@ -30,6 +30,7 @@ export default async function PerfilPage() {
         </p>
         <PerfilForm
           profile={profile}
+          userId={user.id}
           defaultName={defaultName}
           firstTime={firstTime}
         />

@@ -7,8 +7,10 @@ import { PrintButton } from "@/components/PrintButton";
 import { SeverityChart, type ChartPoint } from "@/components/SeverityChart";
 import { AdminPatientEditor } from "./AdminPatientEditor";
 import { DeleteAssessmentButton } from "./DeleteAssessmentButton";
+import { DeleteUserButton } from "./DeleteUserButton";
 import { PainDiaryToggle } from "./PainDiaryToggle";
 import { PainEpisodeList, type PainEpisode } from "@/components/PainEpisodeList";
+import { Avatar } from "@/components/Avatar";
 import { formatCPF, formatPhone } from "@/lib/masks";
 import {
   BODY_AREAS,
@@ -35,7 +37,7 @@ export default async function PatientDetailPage({
       supabase
         .from("profiles")
         .select(
-          "id, full_name, email, cpf, birth_date, phone, pain_diary_enabled"
+          "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled"
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -76,11 +78,14 @@ export default async function PatientDetailPage({
 
         <div className="card mb-6">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="font-display text-2xl font-semibold text-navy-800">
-                {profile.full_name || "(sem nome)"}
-              </h1>
-              <p className="text-sm text-navy-400">{profile.email}</p>
+            <div className="flex items-center gap-3">
+              <Avatar url={profile.avatar_url} name={profile.full_name} size={56} />
+              <div>
+                <h1 className="font-display text-2xl font-semibold text-navy-800">
+                  {profile.full_name || "(sem nome)"}
+                </h1>
+                <p className="text-sm text-navy-400">{profile.email}</p>
+              </div>
             </div>
             <PrintButton />
           </div>
@@ -219,6 +224,18 @@ export default async function PatientDetailPage({
             <PainEpisodeList episodes={painEpisodes as PainEpisode[]} />
           </div>
         )}
+
+        <div className="mt-10 rounded-2xl border border-red-100 bg-red-50/40 p-4 print:hidden">
+          <h2 className="text-sm font-semibold text-red-700">Zona de risco</h2>
+          <p className="mb-3 mt-1 text-xs text-navy-500">
+            Excluir o paciente remove a conta e todos os dados (avaliações e
+            diário). Não pode ser desfeito.
+          </p>
+          <DeleteUserButton
+            userId={profile.id}
+            name={profile.full_name || "(sem nome)"}
+          />
+        </div>
       </main>
       <Footer />
     </>

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
 import { buildWhatsappLink, buildMailtoLink } from "@/lib/whatsapp";
 import { CLINIC_NAME, SITE_URL } from "@/lib/config";
@@ -46,6 +47,7 @@ export async function updateProfile(data: {
   cpf?: string | null;
   birth_date?: string | null;
   phone?: string | null;
+  avatar_url?: string | null;
   redirectTo?: string;
 }) {
   const supabase = await createClient();
@@ -54,18 +56,21 @@ export async function updateProfile(data: {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const payload: Record<string, unknown> = {
+    id: user.id,
+    email: user.email,
+    full_name: data.full_name,
+    cpf: data.cpf || null,
+    birth_date: data.birth_date || null,
+    phone: data.phone || null,
+  };
+  // só atualiza a foto se foi informada (evita apagar ao salvar outros campos)
+  if (data.avatar_url !== undefined) payload.avatar_url = data.avatar_url;
+
   // upsert garante que a linha exista mesmo se o trigger não a tiver criado
-  const { error } = await supabase.from("profiles").upsert(
-    {
-      id: user.id,
-      email: user.email,
-      full_name: data.full_name,
-      cpf: data.cpf || null,
-      birth_date: data.birth_date || null,
-      phone: data.phone || null,
-    },
-    { onConflict: "id" }
-  );
+  const { error } = await supabase
+    .from("profiles")
+    .upsert(payload, { onConflict: "id" });
 
   if (error) return { ok: false as const, error: error.message };
 
@@ -128,6 +133,55 @@ export async function adminDeleteAssessment(assessmentId: string, userId: string
 
   if (error) return { ok: false as const, error: error.message };
   revalidatePath(`/admin/${userId}`);
+  revalidatePath("/admin");
+  return { ok: true as const };
+}
+
+/**
+ * Médico exclui um paciente por completo (conta + dados).
+ * Usa a SERVICE ROLE KEY para remover a conta em auth.users; as tabelas
+ * (profiles, assessments, pain_episodes) são apagadas em cascata.
+ */
+export async function adminDeleteUser(userId: string) {
+  const supabase = await requireAdmin();
+
+  // Impedir auto-exclusão
+  const {
+    data: { user: me },
+  } = await supabase.auth.getUser();
+  if (me?.id === userId) {
+    return { ok: false as const, error: "Você não pode excluir a si mesmo." };
+  }
+
+  // Impedir excluir outro médico/admin
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", userId)
+    .maybeSingle();
+  if (target?.email) {
+    const { data: isTargetAdmin } = await supabase
+      .from("admin_emails")
+      .select("email")
+      .ilike("email", target.email)
+      .maybeSingle();
+    if (isTargetAdmin) {
+      return { ok: false as const, error: "Não é possível excluir um médico." };
+    }
+  }
+
+  const admin = createAdminClient();
+  if (!admin) {
+    return {
+      ok: false as const,
+      error:
+        "Exclusão indisponível: defina SUPABASE_SERVICE_ROLE_KEY nas variáveis de ambiente.",
+    };
+  }
+
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) return { ok: false as const, error: error.message };
+
   revalidatePath("/admin");
   return { ok: true as const };
 }

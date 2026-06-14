@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Avatar } from "@/components/Avatar";
 
 export interface PatientSummary {
   id: string;
   fullName: string | null;
   email: string | null;
+  avatarUrl: string | null;
   count: number;
   latestDate: string | null;
   latestMeets: boolean | null;
@@ -51,9 +53,10 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
             <li key={p.id}>
               <Link
                 href={`/admin/${p.id}`}
-                className="card flex h-full items-center justify-between transition hover:border-teal-300 hover:shadow-card"
+                className="card flex h-full items-center gap-3 transition hover:border-teal-300 hover:shadow-card"
               >
-                <div className="min-w-0">
+                <Avatar url={p.avatarUrl} name={p.fullName} size={44} />
+                <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold text-navy-800">
                     {p.fullName || "(sem nome)"}
                   </div>

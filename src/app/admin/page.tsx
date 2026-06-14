@@ -17,6 +17,7 @@ interface ProfileRow {
   id: string;
   full_name: string | null;
   email: string | null;
+  avatar_url: string | null;
 }
 
 export default async function AdminPage() {
@@ -25,7 +26,7 @@ export default async function AdminPage() {
 
   const [{ data: profiles }, { data: assessments }, { data: admins }] =
     await Promise.all([
-      supabase.from("profiles").select("id, full_name, email"),
+      supabase.from("profiles").select("id, full_name, email, avatar_url"),
       supabase
         .from("assessments")
         .select("user_id, created_at, severity_score, meets_criteria")
@@ -57,6 +58,7 @@ export default async function AdminPage() {
         id: p.id,
         fullName: p.full_name,
         email: p.email,
+        avatarUrl: p.avatar_url,
         count: list.length,
         latestDate: latest?.created_at ?? null,
         latestMeets: latest?.meets_criteria ?? null,
