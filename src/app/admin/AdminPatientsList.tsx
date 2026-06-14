@@ -40,27 +40,27 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
       </div>
 
       {filtered.length === 0 ? (
-        <div className="card text-center text-slate-600">
+        <div className="card text-center text-navy-500">
           {patients.length === 0
             ? "Nenhum paciente cadastrou avaliações ainda."
             : "Nenhum paciente encontrado para esta busca."}
         </div>
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid gap-3 sm:grid-cols-2">
           {filtered.map((p) => (
             <li key={p.id}>
               <Link
                 href={`/admin/${p.id}`}
-                className="card flex items-center justify-between hover:border-brand-300"
+                className="card flex h-full items-center justify-between transition hover:border-teal-300 hover:shadow-card"
               >
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-slate-800">
+                  <div className="truncate text-sm font-semibold text-navy-800">
                     {p.fullName || "(sem nome)"}
                   </div>
-                  <div className="truncate text-xs text-slate-500">
+                  <div className="truncate text-xs text-navy-400">
                     {p.email}
                   </div>
-                  <div className="mt-1 text-xs text-slate-400">
+                  <div className="mt-1 text-xs text-navy-300">
                     {p.count} avaliação(ões)
                     {p.latestDate && ` · última em ${formatDate(p.latestDate)}`}
                   </div>
@@ -70,7 +70,7 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
                     className={`ml-3 shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
                       p.latestMeets
                         ? "bg-amber-100 text-amber-800"
-                        : "bg-slate-100 text-slate-600"
+                        : "bg-navy-100 text-navy-500"
                     }`}
                   >
                     FS {p.latestScore}

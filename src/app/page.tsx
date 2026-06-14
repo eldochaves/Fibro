@@ -16,49 +16,80 @@ export default async function HomePage() {
       supabase.rpc("is_admin"),
       supabase
         .from("profiles")
-        .select("full_name, birth_date")
+        .select("full_name, cpf, birth_date")
         .eq("id", user.id)
         .maybeSingle(),
     ]);
     if (isAdmin) redirect("/admin");
-    const complete = Boolean(profile?.full_name && profile?.birth_date);
+    const complete = Boolean(
+      profile?.full_name && profile?.cpf && profile?.birth_date
+    );
     redirect(complete ? "/historico" : "/perfil");
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 px-6 py-12">
-      <div className="text-center">
-        <Image
-          src="/logo.png"
-          alt={CLINIC_NAME}
-          width={280}
-          height={78}
-          priority
-          className="mx-auto mb-6 h-auto w-64 max-w-full"
-        />
-        <h1 className="text-xl font-bold text-slate-900">
-          Avaliação de Fibromialgia
-        </h1>
-        <p className="mt-2 text-slate-600">
-          Responda ao questionário (critérios ACR 2016) enquanto aguarda a
-          consulta. Leva poucos minutos e ajuda no seu acompanhamento.
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-12">
+      <div className="w-full max-w-md animate-fade-up">
+        {/* Marca */}
+        <div className="mb-8 text-center">
+          <Image
+            src="/logo.png"
+            alt={CLINIC_NAME}
+            width={320}
+            height={89}
+            priority
+            className="mx-auto h-auto w-72 max-w-full"
+          />
+        </div>
+
+        {/* Cartão principal */}
+        <div className="card shadow-card sm:p-8">
+          <span className="chip-teal mb-4">Critérios ACR 2016</span>
+          <h1 className="font-display text-3xl font-semibold leading-tight text-navy-800">
+            Avaliação de Fibromialgia
+          </h1>
+          <p className="mt-3 text-navy-500">
+            Responda ao questionário pelo celular enquanto aguarda a consulta.
+            Leva poucos minutos e ajuda o seu médico a acompanhar a sua evolução.
+          </p>
+
+          <Link href="/login" className="btn-primary mt-6 w-full">
+            Entrar / Criar conta
+          </Link>
+          <p className="mt-3 text-center text-sm text-navy-400">
+            Acesse com sua conta Google ou com email e senha.
+          </p>
+        </div>
+
+        {/* Selos de confiança */}
+        <div className="mt-6 grid grid-cols-3 gap-3">
+          <Trust icon="🕒" title="Rápido" desc="~5 minutos" />
+          <Trust icon="🔒" title="Seguro" desc="Dados protegidos" />
+          <Trust icon="🩺" title="Médico" desc="Acompanhamento" />
+        </div>
+
+        <p className="mt-8 text-center text-xs text-navy-300">
+          Ferramenta de apoio. Não substitui a avaliação médica.
         </p>
       </div>
-
-      <div className="card space-y-4">
-        <Link href="/login" className="btn-primary w-full">
-          Entrar / Criar conta
-        </Link>
-        <p className="text-center text-sm text-slate-500">
-          Você pode entrar com sua conta Google ou criar um cadastro com email
-          e senha.
-        </p>
-      </div>
-
-      <p className="text-center text-xs text-slate-400">
-        Este questionário é uma ferramenta de apoio e não substitui a avaliação
-        médica.
-      </p>
     </main>
+  );
+}
+
+function Trust({
+  icon,
+  title,
+  desc,
+}: {
+  icon: string;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-navy-100 bg-white/70 p-3 text-center backdrop-blur">
+      <div className="text-xl">{icon}</div>
+      <div className="mt-1 text-sm font-semibold text-navy-700">{title}</div>
+      <div className="text-xs text-navy-400">{desc}</div>
+    </div>
   );
 }

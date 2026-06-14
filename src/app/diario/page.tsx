@@ -30,15 +30,17 @@ export default async function DiarioPage() {
       <main className="mx-auto max-w-3xl px-4 py-6">
         <Link
           href="/historico"
-          className="mb-4 inline-block text-sm font-medium text-brand-600"
+          className="mb-4 inline-block text-sm font-medium text-teal-600"
         >
           ← Voltar
         </Link>
 
-        <h1 className="mb-1 text-xl font-bold">Diário de Dor</h1>
+        <h1 className="mb-1 font-display text-2xl font-semibold text-navy-800">
+          Diário de Dor
+        </h1>
 
         {!enabled ? (
-          <div className="card mt-4 text-center text-slate-600">
+          <div className="card mt-4 text-center text-navy-500">
             <div className="mb-2 text-3xl">🔒</div>
             <p>
               O Diário de Dor ainda não foi habilitado para você. Quando o seu
@@ -48,7 +50,7 @@ export default async function DiarioPage() {
           </div>
         ) : (
           <>
-            <p className="mb-5 text-sm text-slate-600">
+            <p className="mb-5 text-sm text-navy-500">
               Registre cada episódio de dor, de preferência logo após acontecer.
               Anote até as dores leves. Traga este diário no seu retorno.
             </p>
@@ -57,7 +59,7 @@ export default async function DiarioPage() {
               <DiarioForm />
             </div>
 
-            <h2 className="mb-3 text-sm font-semibold text-slate-700">
+            <h2 className="mb-3 text-sm font-semibold text-navy-700">
               Episódios registrados ({(episodes ?? []).length})
             </h2>
             <PainEpisodeList

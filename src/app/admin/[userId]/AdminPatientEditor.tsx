@@ -61,7 +61,7 @@ export function AdminPatientEditor({ profile }: { profile: EditableProfile }) {
   return (
     <form
       onSubmit={handleSave}
-      className="mt-4 space-y-3 rounded-xl bg-slate-50 p-4 print:hidden"
+      className="mt-4 space-y-3 rounded-xl bg-navy-50 p-4 print:hidden"
     >
       <div>
         <label className="label" htmlFor="ed-name">

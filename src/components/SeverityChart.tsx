@@ -58,7 +58,7 @@ export function SeverityChart({ points }: { points: ChartPoint[] }) {
         <polyline
           points={line}
           fill="none"
-          stroke="#3b56e0"
+          stroke="#1f7d70"
           strokeWidth={2}
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -66,10 +66,10 @@ export function SeverityChart({ points }: { points: ChartPoint[] }) {
 
         {/* Pontos */}
         {points.map((p, i) => (
-          <circle key={i} cx={x(i)} cy={y(p.score)} r={3} fill="#3b56e0" />
+          <circle key={i} cx={x(i)} cy={y(p.score)} r={3} fill="#1f7d70" />
         ))}
       </svg>
-      <p className="mt-1 text-center text-xs text-slate-400">
+      <p className="mt-1 text-center text-xs text-navy-300">
         Escore de severidade (FS) ao longo do tempo — quanto menor, melhor.
       </p>
     </div>

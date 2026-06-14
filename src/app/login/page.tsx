@@ -69,33 +69,34 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-12">
-      <div className="text-center">
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-5 py-12">
+      <div className="animate-fade-up text-center">
         <Image
           src="/logo.png"
           alt={CLINIC_NAME}
-          width={260}
-          height={73}
+          width={280}
+          height={78}
           priority
-          className="mx-auto mb-6 h-auto w-60 max-w-full"
+          className="mx-auto mb-7 h-auto w-64 max-w-full"
         />
-        <h1 className="text-xl font-bold">
-          {mode === "signin" ? "Entrar" : "Criar conta"}
+        <h1 className="font-display text-2xl font-semibold text-navy-800">
+          {mode === "signin" ? "Bem-vindo(a) de volta" : "Criar conta"}
         </h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-navy-500">
           Acesse para responder o questionário e ver seu histórico.
         </p>
       </div>
 
+      <div className="animate-fade-up space-y-6">
       <button onClick={handleGoogle} className="btn-outline w-full">
         <GoogleIcon />
         Continuar com Google
       </button>
 
-      <div className="flex items-center gap-3 text-xs text-slate-400">
-        <div className="h-px flex-1 bg-slate-200" />
+      <div className="flex items-center gap-3 text-xs text-navy-300">
+        <div className="h-px flex-1 bg-navy-100" />
         ou
-        <div className="h-px flex-1 bg-slate-200" />
+        <div className="h-px flex-1 bg-navy-100" />
       </div>
 
       <form onSubmit={handleEmail} className="card space-y-4">
@@ -167,11 +168,11 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-navy-500">
         {mode === "signin" ? "Não tem conta?" : "Já tem conta?"}{" "}
         <button
           type="button"
-          className="font-semibold text-brand-600 underline"
+          className="font-semibold text-teal-600 underline-offset-2 hover:underline"
           onClick={() => {
             setMode(mode === "signin" ? "signup" : "signin");
             setError(null);
@@ -181,6 +182,7 @@ export default function LoginPage() {
           {mode === "signin" ? "Cadastre-se" : "Entrar"}
         </button>
       </p>
+      </div>
     </main>
   );
 }

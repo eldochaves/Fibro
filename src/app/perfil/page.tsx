@@ -20,10 +20,10 @@ export default async function PerfilPage() {
     <>
       <Header email={user.email} />
       <main className="mx-auto max-w-md px-4 py-6">
-        <h1 className="text-xl font-bold">
+        <h1 className="font-display text-2xl font-semibold text-navy-800">
           {firstTime ? "Bem-vindo(a)!" : "Meus dados"}
         </h1>
-        <p className="mb-5 mt-1 text-sm text-slate-600">
+        <p className="mb-5 mt-1 text-sm text-navy-500">
           {firstTime
             ? "Antes de começar, confirme alguns dados para o seu médico identificar a sua avaliação."
             : "Atualize seus dados de cadastro."}

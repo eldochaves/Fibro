@@ -25,7 +25,7 @@ export function PainEpisodeList({
 }) {
   if (episodes.length === 0) {
     return (
-      <div className="card text-center text-slate-600">
+      <div className="card text-center text-navy-500">
         Nenhum episódio registrado ainda.
       </div>
     );
@@ -37,10 +37,10 @@ export function PainEpisodeList({
         <li key={ep.id} className="card">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-slate-800">
+              <div className="text-sm font-semibold text-navy-800">
                 {formatDate(ep.episode_date)}
                 {ep.start_time && (
-                  <span className="font-normal text-slate-500">
+                  <span className="font-normal text-navy-400">
                     {" · "}
                     {ep.start_time}
                     {ep.end_time ? ` – ${ep.end_time}` : ""}
@@ -48,20 +48,20 @@ export function PainEpisodeList({
                 )}
               </div>
               {ep.location && (
-                <div className="mt-1 text-sm text-slate-700">
-                  <span className="text-slate-400">Onde: </span>
+                <div className="mt-1 text-sm text-navy-700">
+                  <span className="text-navy-300">Onde: </span>
                   {ep.location}
                 </div>
               )}
               {ep.activity && (
-                <div className="text-sm text-slate-700">
-                  <span className="text-slate-400">Fazendo: </span>
+                <div className="text-sm text-navy-700">
+                  <span className="text-navy-300">Fazendo: </span>
                   {ep.activity}
                 </div>
               )}
               {ep.radiation && (
-                <div className="text-sm text-slate-700">
-                  <span className="text-slate-400">Irradiação: </span>
+                <div className="text-sm text-navy-700">
+                  <span className="text-navy-300">Irradiação: </span>
                   {ep.radiation}
                 </div>
               )}

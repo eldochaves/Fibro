@@ -49,13 +49,13 @@ export function PainDiaryToggle({
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 p-4 print:hidden">
+    <div className="rounded-xl border border-navy-200 p-4 print:hidden">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="text-sm font-semibold text-slate-800">
+          <div className="text-sm font-semibold text-navy-800">
             📒 Diário de Dor
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-navy-400">
             {enabled
               ? "Habilitado para este paciente."
               : "Desabilitado. Habilite para o paciente registrar episódios."}
@@ -78,8 +78,8 @@ export function PainDiaryToggle({
       )}
 
       {(emailStatus || waLink) && (
-        <div className="mt-3 space-y-2 rounded-lg bg-slate-50 p-3 text-sm">
-          {emailStatus && <p className="text-slate-600">{emailStatus}</p>}
+        <div className="mt-3 space-y-2 rounded-lg bg-navy-50 p-3 text-sm">
+          {emailStatus && <p className="text-navy-500">{emailStatus}</p>}
           {waLink ? (
             <a
               href={waLink}
@@ -91,7 +91,7 @@ export function PainDiaryToggle({
               Enviar aviso por WhatsApp
             </a>
           ) : (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-navy-400">
               Sem telefone cadastrado para gerar o link de WhatsApp.
             </p>
           )}

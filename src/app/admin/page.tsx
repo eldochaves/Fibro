@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { getContext } from "@/lib/session";
 import { AdminPatientsList, type PatientSummary } from "./AdminPatientsList";
 
@@ -74,10 +75,15 @@ export default async function AdminPage() {
   return (
     <>
       <Header email={user.email} isAdmin />
-      <main className="mx-auto max-w-3xl px-4 py-6">
-        <h1 className="mb-4 text-xl font-bold">Pacientes</h1>
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <h1 className="font-display text-2xl font-semibold text-navy-800 sm:text-3xl">
+          Pacientes
+        </h1>
+        <p className="mt-1 text-sm text-navy-400">
+          Acompanhe as avaliações e o diário de dor dos seus pacientes.
+        </p>
 
-        <div className="mb-6 grid grid-cols-3 gap-3">
+        <div className="mb-6 mt-6 grid grid-cols-3 gap-3 sm:gap-4">
           <Stat label="Pacientes" value={patients.length} />
           <Stat label="Avaliações" value={totalAssessments} />
           <Stat label="Critérios +" value={meetingCriteria} />
@@ -85,6 +91,7 @@ export default async function AdminPage() {
 
         <AdminPatientsList patients={patients} />
       </main>
+      <Footer />
     </>
   );
 }
@@ -92,8 +99,8 @@ export default async function AdminPage() {
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="card text-center">
-      <div className="text-2xl font-bold text-brand-600">{value}</div>
-      <div className="text-xs text-slate-500">{label}</div>
+      <div className="text-2xl font-bold text-teal-600">{value}</div>
+      <div className="text-xs text-navy-400">{label}</div>
     </div>
   );
 }

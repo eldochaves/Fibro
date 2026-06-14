@@ -99,15 +99,15 @@ export function QuestionarioForm() {
     <div className="mx-auto max-w-3xl px-4 py-6">
       {/* Progresso */}
       <div className="mb-6">
-        <div className="mb-2 flex justify-between text-xs font-medium text-slate-500">
+        <div className="mb-2 flex justify-between text-xs font-medium text-navy-400">
           <span>
             Etapa {step + 1} de {STEPS.length}
           </span>
           <span>{STEPS[step]}</span>
         </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-navy-100">
           <div
-            className="h-full rounded-full bg-brand-600 transition-all"
+            className="h-full rounded-full bg-teal-500 transition-all"
             style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
           />
         </div>
@@ -117,8 +117,8 @@ export function QuestionarioForm() {
       {step === 0 && (
         <section className="space-y-5">
           <div>
-            <h2 className="text-lg font-bold">Onde você sentiu dor?</h2>
-            <p className="text-sm text-slate-600">
+            <h2 className="font-display text-xl font-semibold text-navy-800">Onde você sentiu dor?</h2>
+            <p className="text-sm text-navy-500">
               Marque todas as áreas onde você sentiu dor{" "}
               <strong>na última semana</strong>.
             </p>
@@ -126,10 +126,10 @@ export function QuestionarioForm() {
 
           {GENERALIZED_REGIONS.map((region) => (
             <div key={region} className="card">
-              <h3 className="mb-3 text-sm font-semibold text-slate-700">
+              <h3 className="mb-3 text-sm font-semibold text-navy-700">
                 {REGION_LABELS[region]}
               </h3>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {areasByRegion.get(region)?.map((area) => {
                   const active = painAreas.has(area.id);
                   return (
@@ -140,15 +140,15 @@ export function QuestionarioForm() {
                       aria-pressed={active}
                       className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition ${
                         active
-                          ? "border-brand-500 bg-brand-50 text-brand-700"
-                          : "border-slate-200 bg-white text-slate-700"
+                          ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
+                          : "border-navy-200 bg-white text-navy-700 hover:border-navy-300"
                       }`}
                     >
                       <span
                         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
                           active
-                            ? "border-brand-600 bg-brand-600 text-white"
-                            : "border-slate-300"
+                            ? "border-teal-600 bg-teal-600 text-white"
+                            : "border-navy-300"
                         }`}
                       >
                         {active && <CheckIcon />}
@@ -161,7 +161,7 @@ export function QuestionarioForm() {
             </div>
           ))}
 
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-navy-400">
             Áreas marcadas: <strong>{painAreas.size}</strong> de 19
           </p>
         </section>
@@ -171,8 +171,8 @@ export function QuestionarioForm() {
       {step === 1 && (
         <section className="space-y-5">
           <div>
-            <h2 className="text-lg font-bold">Como você tem se sentido?</h2>
-            <p className="text-sm text-slate-600">
+            <h2 className="font-display text-xl font-semibold text-navy-800">Como você tem se sentido?</h2>
+            <p className="text-sm text-navy-500">
               Pensando na <strong>última semana</strong>, indique a intensidade
               de cada sintoma.
             </p>
@@ -180,10 +180,10 @@ export function QuestionarioForm() {
 
           {SSS_SEVERITY_ITEMS.map((item) => (
             <div key={item.id} className="card">
-              <h3 className="text-sm font-semibold text-slate-800">
+              <h3 className="text-sm font-semibold text-navy-800">
                 {item.label}
               </h3>
-              <p className="mb-3 text-xs text-slate-500">{item.description}</p>
+              <p className="mb-3 text-xs text-navy-400">{item.description}</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {SSS_SEVERITY_OPTIONS.map((opt) => {
                   const active = severity[item.id] === opt.value;
@@ -197,8 +197,8 @@ export function QuestionarioForm() {
                       aria-pressed={active}
                       className={`rounded-xl border px-3 py-3 text-sm font-medium transition ${
                         active
-                          ? "border-brand-500 bg-brand-50 text-brand-700"
-                          : "border-slate-200 bg-white text-slate-700"
+                          ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
+                          : "border-navy-200 bg-white text-navy-700 hover:border-navy-300"
                       }`}
                     >
                       {opt.label}
@@ -215,8 +215,8 @@ export function QuestionarioForm() {
       {step === 2 && (
         <section className="space-y-5">
           <div>
-            <h2 className="text-lg font-bold">Outros sintomas</h2>
-            <p className="text-sm text-slate-600">
+            <h2 className="font-display text-xl font-semibold text-navy-800">Outros sintomas</h2>
+            <p className="text-sm text-navy-500">
               Nos <strong>últimos 6 meses</strong>, você teve:
             </p>
           </div>
@@ -234,15 +234,15 @@ export function QuestionarioForm() {
                   aria-pressed={active}
                   className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition ${
                     active
-                      ? "border-brand-500 bg-brand-50 text-brand-700"
-                      : "border-slate-200 bg-white text-slate-700"
+                      ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
+                      : "border-navy-200 bg-white text-navy-700"
                   }`}
                 >
                   <span
                     className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
                       active
-                        ? "border-brand-600 bg-brand-600 text-white"
-                        : "border-slate-300"
+                        ? "border-teal-600 bg-teal-600 text-white"
+                        : "border-navy-300"
                     }`}
                   >
                     {active && <CheckIcon />}
@@ -254,7 +254,7 @@ export function QuestionarioForm() {
           </div>
 
           <div className="card">
-            <h3 className="mb-3 text-sm font-semibold text-slate-800">
+            <h3 className="mb-3 text-sm font-semibold text-navy-800">
               Esses sintomas estão presentes, em nível parecido, há pelo menos 3
               meses?
             </h3>
@@ -272,8 +272,8 @@ export function QuestionarioForm() {
                     aria-pressed={active}
                     className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
                       active
-                        ? "border-brand-500 bg-brand-50 text-brand-700"
-                        : "border-slate-200 bg-white text-slate-700"
+                        ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
+                        : "border-navy-200 bg-white text-navy-700"
                     }`}
                   >
                     {opt.label}
@@ -291,8 +291,8 @@ export function QuestionarioForm() {
           {!saved ? (
             <>
               <div>
-                <h2 className="text-lg font-bold">Confira e finalize</h2>
-                <p className="text-sm text-slate-600">
+                <h2 className="font-display text-xl font-semibold text-navy-800">Confira e finalize</h2>
+                <p className="text-sm text-navy-500">
                   Revise o resumo abaixo e toque em salvar para enviar ao seu
                   médico.
                 </p>
@@ -317,8 +317,8 @@ export function QuestionarioForm() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-3xl">
                   ✅
                 </div>
-                <h2 className="text-lg font-bold">Avaliação enviada!</h2>
-                <p className="text-sm text-slate-600">
+                <h2 className="font-display text-xl font-semibold text-navy-800">Avaliação enviada!</h2>
+                <p className="text-sm text-navy-500">
                   Suas respostas foram salvas. Você pode mostrar este resultado
                   ao seu médico.
                 </p>
@@ -375,7 +375,7 @@ function ResultCard({
 }) {
   return (
     <div className="card space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Metric label="WPI (Dor generalizada)" value={`${result.wpi} / 19`} />
         <Metric label="SSS (Severidade)" value={`${result.sss} / 12`} />
         <Metric
@@ -392,7 +392,7 @@ function ResultCard({
         className={`rounded-xl px-4 py-3 text-sm font-medium ${
           result.meetsCriteria
             ? "bg-amber-50 text-amber-800"
-            : "bg-slate-100 text-slate-700"
+            : "bg-navy-100 text-navy-600"
         }`}
       >
         {result.meetsCriteria
@@ -400,7 +400,7 @@ function ResultCard({
           : "Os critérios ACR 2016 NÃO foram atendidos nesta avaliação."}
       </div>
 
-      <ul className="space-y-1 text-xs text-slate-500">
+      <ul className="space-y-1 text-xs text-navy-400">
         <li>
           {result.conditions.painThreshold ? "✓" : "✗"} Limiar de dor/severidade
         </li>
@@ -412,7 +412,7 @@ function ResultCard({
       </ul>
 
       {preview && (
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-navy-300">
           Este resultado é apenas uma triagem e não constitui diagnóstico. Seu
           médico fará a avaliação final.
         </p>
@@ -423,9 +423,9 @@ function ResultCard({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-3 py-2">
-      <div className="text-xs text-slate-500">{label}</div>
-      <div className="text-lg font-bold text-slate-900">{value}</div>
+    <div className="rounded-xl bg-navy-50 px-3 py-2">
+      <div className="text-xs text-navy-400">{label}</div>
+      <div className="text-lg font-bold text-navy-900">{value}</div>
     </div>
   );
 }

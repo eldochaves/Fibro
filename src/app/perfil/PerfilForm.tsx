@@ -95,7 +95,7 @@ export function PerfilForm({
 
       <div>
         <label className="label" htmlFor="phone">
-          Telefone / WhatsApp <span className="text-slate-400">(opcional)</span>
+          Telefone / WhatsApp <span className="text-navy-300">(opcional)</span>
         </label>
         <input
           id="phone"

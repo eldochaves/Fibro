@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { getContext } from "@/lib/session";
 import { PrintButton } from "@/components/PrintButton";
 import { SeverityChart, type ChartPoint } from "@/components/SeverityChart";
@@ -68,7 +69,7 @@ export default async function PatientDetailPage({
       <main className="mx-auto max-w-3xl px-4 py-6">
         <Link
           href="/admin"
-          className="mb-4 inline-block text-sm font-medium text-brand-600 print:hidden"
+          className="mb-4 inline-block text-sm font-medium text-teal-600 print:hidden"
         >
           ← Voltar para pacientes
         </Link>
@@ -76,14 +77,14 @@ export default async function PatientDetailPage({
         <div className="card mb-6">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h1 className="text-xl font-bold">
+              <h1 className="font-display text-2xl font-semibold text-navy-800">
                 {profile.full_name || "(sem nome)"}
               </h1>
-              <p className="text-sm text-slate-500">{profile.email}</p>
+              <p className="text-sm text-navy-400">{profile.email}</p>
             </div>
             <PrintButton />
           </div>
-          <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
+          <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-navy-400">
             {profile.cpf && <span>CPF: {formatCPF(profile.cpf)}</span>}
             {profile.birth_date && (
               <span>Nascimento: {formatDate(profile.birth_date)}</span>
@@ -111,19 +112,19 @@ export default async function PatientDetailPage({
 
         {chartPoints.length >= 2 && (
           <div className="card mb-6">
-            <h2 className="mb-2 text-sm font-semibold text-slate-700">
+            <h2 className="mb-2 text-sm font-semibold text-navy-700">
               Evolução
             </h2>
             <SeverityChart points={chartPoints} />
           </div>
         )}
 
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">
+        <h2 className="mb-3 text-sm font-semibold text-navy-700">
           Avaliações ({list.length})
         </h2>
 
         {list.length === 0 ? (
-          <div className="card text-slate-600">
+          <div className="card text-navy-500">
             Este paciente ainda não preencheu nenhuma avaliação.
           </div>
         ) : (
@@ -133,14 +134,14 @@ export default async function PatientDetailPage({
               return (
                 <details key={a.id} className="card" open={a === list[0]}>
                   <summary className="flex cursor-pointer items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-800">
+                    <span className="text-sm font-semibold text-navy-800">
                       {formatDateTime(a.created_at)}
                     </span>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-medium ${
                         a.meets_criteria
                           ? "bg-amber-100 text-amber-800"
-                          : "bg-slate-100 text-slate-600"
+                          : "bg-navy-100 text-navy-500"
                       }`}
                     >
                       {a.meets_criteria ? "Critérios atendidos" : "Não atendidos"}
@@ -156,10 +157,10 @@ export default async function PatientDetailPage({
 
                   <div className="mt-4 space-y-3 text-sm">
                     <div>
-                      <h4 className="font-semibold text-slate-700">
+                      <h4 className="font-semibold text-navy-700">
                         Áreas com dor ({answers.painAreas.length})
                       </h4>
-                      <p className="text-slate-600">
+                      <p className="text-navy-500">
                         {answers.painAreas.length === 0
                           ? "Nenhuma"
                           : answers.painAreas
@@ -169,8 +170,8 @@ export default async function PatientDetailPage({
                     </div>
 
                     <div>
-                      <h4 className="font-semibold text-slate-700">Severidade</h4>
-                      <ul className="text-slate-600">
+                      <h4 className="font-semibold text-navy-700">Severidade</h4>
+                      <ul className="text-navy-500">
                         {SSS_SEVERITY_ITEMS.map((item) => (
                           <li key={item.id}>
                             {item.label}: {answers.severity[item.id]}/3
@@ -180,10 +181,10 @@ export default async function PatientDetailPage({
                     </div>
 
                     <div>
-                      <h4 className="font-semibold text-slate-700">
+                      <h4 className="font-semibold text-navy-700">
                         Outros sintomas
                       </h4>
-                      <ul className="text-slate-600">
+                      <ul className="text-navy-500">
                         {SSS_SYMPTOM_ITEMS.map((item) => (
                           <li key={item.id}>
                             {item.label}:{" "}
@@ -198,7 +199,7 @@ export default async function PatientDetailPage({
                     </div>
                   </div>
 
-                  <div className="mt-4 flex justify-end border-t border-slate-100 pt-3">
+                  <div className="mt-4 flex justify-end border-t border-navy-100 pt-3">
                     <DeleteAssessmentButton
                       assessmentId={a.id}
                       userId={userId}
@@ -212,22 +213,23 @@ export default async function PatientDetailPage({
 
         {profile.pain_diary_enabled && (
           <div className="mt-8">
-            <h2 className="mb-3 text-sm font-semibold text-slate-700">
+            <h2 className="mb-3 text-sm font-semibold text-navy-700">
               Diário de Dor ({painEpisodes.length})
             </h2>
             <PainEpisodeList episodes={painEpisodes as PainEpisode[]} />
           </div>
         )}
       </main>
+      <Footer />
     </>
   );
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-3 py-2">
-      <div className="text-xs text-slate-500">{label}</div>
-      <div className="text-lg font-bold text-slate-900">{value}</div>
+    <div className="rounded-xl bg-navy-50 px-3 py-2">
+      <div className="text-xs text-navy-400">{label}</div>
+      <div className="text-lg font-bold text-navy-900">{value}</div>
     </div>
   );
 }

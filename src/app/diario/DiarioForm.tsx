@@ -148,7 +148,7 @@ export function DiarioForm() {
             );
           })}
         </div>
-        <div className="mt-1 flex justify-between text-xs text-slate-400">
+        <div className="mt-1 flex justify-between text-xs text-navy-300">
           <span>0 · sem dor</span>
           <span>10 · pior dor</span>
         </div>
@@ -156,7 +156,7 @@ export function DiarioForm() {
 
       <div>
         <label className="label" htmlFor="ep-rad">
-          Irradiação — para onde a dor vai? <span className="text-slate-400">(opcional)</span>
+          Irradiação — para onde a dor vai? <span className="text-navy-300">(opcional)</span>
         </label>
         <input
           id="ep-rad"
@@ -169,7 +169,7 @@ export function DiarioForm() {
 
       <div>
         <label className="label" htmlFor="ep-end">
-          Hora do fim <span className="text-slate-400">(opcional)</span>
+          Hora do fim <span className="text-navy-300">(opcional)</span>
         </label>
         <input
           id="ep-end"
