@@ -39,7 +39,7 @@ export default function LoginPage() {
 
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -48,6 +48,13 @@ export default function LoginPage() {
           },
         });
         if (error) throw error;
+        // Se a confirmação de email estiver desativada no Supabase, já vem
+        // uma sessão e o paciente entra direto.
+        if (data.session) {
+          router.push("/perfil");
+          router.refresh();
+          return;
+        }
         setMessage(
           "Cadastro criado! Verifique seu email para confirmar a conta e depois faça login."
         );
