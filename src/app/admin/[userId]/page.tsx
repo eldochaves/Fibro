@@ -9,9 +9,11 @@ import { AdminPatientEditor } from "./AdminPatientEditor";
 import { DeleteAssessmentButton } from "./DeleteAssessmentButton";
 import { DeleteUserButton } from "./DeleteUserButton";
 import { PainDiaryToggle } from "./PainDiaryToggle";
+import { PatientCareEditor } from "./PatientCareEditor";
 import { PainEpisodeList, type PainEpisode } from "@/components/PainEpisodeList";
 import { Avatar } from "@/components/Avatar";
 import { formatCPF, formatPhone } from "@/lib/masks";
+import { DISEASE_LABEL } from "@/lib/questionnaires";
 import {
   BODY_AREAS,
   SSS_SEVERITY_ITEMS,
@@ -37,7 +39,7 @@ export default async function PatientDetailPage({
       supabase
         .from("profiles")
         .select(
-          "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled"
+          "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled, diseases, questionnaires"
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -96,6 +98,15 @@ export default async function PatientDetailPage({
             )}
             {profile.phone && <span>Telefone: {formatPhone(profile.phone)}</span>}
           </div>
+          {(profile.diseases ?? []).length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(profile.diseases as string[]).map((d) => (
+                <span key={d} className="chip-teal">
+                  {DISEASE_LABEL[d] ?? d}
+                </span>
+              ))}
+            </div>
+          )}
           <div className="mt-4">
             <AdminPatientEditor
               profile={{
@@ -107,12 +118,21 @@ export default async function PatientDetailPage({
               }}
             />
           </div>
-          <div className="mt-4">
-            <PainDiaryToggle
-              userId={profile.id}
-              initialEnabled={profile.pain_diary_enabled === true}
-            />
-          </div>
+        </div>
+
+        <div className="mb-6">
+          <PatientCareEditor
+            userId={profile.id}
+            initialDiseases={(profile.diseases as string[]) ?? []}
+            initialQuestionnaires={(profile.questionnaires as string[]) ?? []}
+          />
+        </div>
+
+        <div className="mb-6">
+          <PainDiaryToggle
+            userId={profile.id}
+            initialEnabled={profile.pain_diary_enabled === true}
+          />
         </div>
 
         {chartPoints.length >= 2 && (

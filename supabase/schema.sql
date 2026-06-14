@@ -15,6 +15,8 @@ create table if not exists public.profiles (
   phone text,
   avatar_url text,
   pain_diary_enabled boolean not null default false,
+  diseases text[] not null default '{}',
+  questionnaires text[] not null default '{}',
   created_at timestamptz not null default now()
 );
 

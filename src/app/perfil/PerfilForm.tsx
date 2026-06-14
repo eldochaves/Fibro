@@ -77,7 +77,7 @@ export function PerfilForm({
       birth_date: birthDate || null,
       phone: phone.replace(/\D/g, "") || null,
       avatar_url: avatarUrl,
-      redirectTo: firstTime ? "/questionario" : "/inicio",
+      redirectTo: "/inicio",
     });
     setSaving(false);
     if (res && !res.ok) {

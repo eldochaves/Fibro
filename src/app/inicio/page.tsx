@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Avatar } from "@/components/Avatar";
 import { getContext, isProfileComplete } from "@/lib/session";
+import { QUESTIONNAIRES } from "@/lib/questionnaires";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,9 @@ export default async function InicioPage() {
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "";
   const diaryEnabled = profile?.pain_diary_enabled === true;
+  const assignedKeys = profile?.questionnaires ?? [];
+  const assigned = QUESTIONNAIRES.filter((q) => assignedKeys.includes(q.key));
+  const hasSomething = assigned.length > 0 || diaryEnabled;
 
   return (
     <>
@@ -31,43 +35,43 @@ export default async function InicioPage() {
           </div>
         </div>
         <p className="mt-2 text-navy-500">
-          Escolha uma das opções abaixo para começar.
+          {hasSomething
+            ? "Escolha uma das opções abaixo para começar."
+            : "Assim que o seu médico liberar um questionário, ele aparecerá aqui."}
         </p>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {/* Questionário pré-consulta */}
-          <ActionCard
-            href="/questionario"
-            icon="📝"
-            title="Questionário pré-consulta"
-            desc="Avaliação de fibromialgia (ACR 2016). Leva poucos minutos."
-            cta="Preencher questionário"
-          />
+        {!hasSomething ? (
+          <div className="card mt-6 text-center">
+            <div className="text-3xl">⏳</div>
+            <p className="mt-2 text-navy-500">
+              Nenhum questionário liberado ainda. Aguarde o seu médico — você
+              será avisado quando algo estiver disponível.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {assigned.map((q) => (
+              <ActionCard
+                key={q.key}
+                href={q.path}
+                icon={q.icon}
+                title={q.name}
+                desc={q.description}
+                cta="Preencher"
+              />
+            ))}
 
-          {/* Diário de Dor */}
-          {diaryEnabled ? (
-            <ActionCard
-              href="/diario"
-              icon="📒"
-              title="Diário de Dor"
-              desc="Registre seus episódios de dor para acompanhamento."
-              cta="Abrir diário"
-            />
-          ) : (
-            <div className="card flex flex-col opacity-80">
-              <div className="text-3xl">🔒</div>
-              <h2 className="mt-3 font-display text-lg font-semibold text-navy-800">
-                Diário de Dor
-              </h2>
-              <p className="mt-1 flex-1 text-sm text-navy-500">
-                Fica disponível quando o seu médico habilitar para você.
-              </p>
-              <span className="mt-4 text-sm font-medium text-navy-300">
-                Indisponível no momento
-              </span>
-            </div>
-          )}
-        </div>
+            {diaryEnabled && (
+              <ActionCard
+                href="/diario"
+                icon="📒"
+                title="Diário de Dor"
+                desc="Registre seus episódios de dor para acompanhamento."
+                cta="Abrir diário"
+              />
+            )}
+          </div>
+        )}
 
         {/* Atalhos secundários */}
         <div className="mt-8 grid gap-3 sm:grid-cols-2">

@@ -10,6 +10,8 @@ export interface Profile {
   phone: string | null;
   avatar_url: string | null;
   pain_diary_enabled: boolean;
+  diseases: string[];
+  questionnaires: string[];
 }
 
 /**
@@ -28,7 +30,7 @@ export async function getContext() {
     supabase
       .from("profiles")
       .select(
-        "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled"
+        "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled, diseases, questionnaires"
       )
       .eq("id", user.id)
       .maybeSingle(),

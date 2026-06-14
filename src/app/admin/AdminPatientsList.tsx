@@ -3,12 +3,14 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
+import { DISEASE_LABEL } from "@/lib/questionnaires";
 
 export interface PatientSummary {
   id: string;
   fullName: string | null;
   email: string | null;
   avatarUrl: string | null;
+  diseases: string[];
   count: number;
   latestDate: string | null;
   latestMeets: boolean | null;
@@ -67,6 +69,18 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
                     {p.count} avaliação(ões)
                     {p.latestDate && ` · última em ${formatDate(p.latestDate)}`}
                   </div>
+                  {p.diseases.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {p.diseases.map((d) => (
+                        <span
+                          key={d}
+                          className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-700"
+                        >
+                          {DISEASE_LABEL[d] ?? d}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {p.latestScore !== null && (
                   <span

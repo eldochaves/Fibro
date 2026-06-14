@@ -137,6 +137,26 @@ export async function adminDeleteAssessment(assessmentId: string, userId: string
   return { ok: true as const };
 }
 
+/** Médico define as doenças (etiquetas) e os questionários liberados ao paciente. */
+export async function adminSetPatientCare(
+  userId: string,
+  data: { diseases: string[]; questionnaires: string[] }
+) {
+  const supabase = await requireAdmin();
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      diseases: data.diseases,
+      questionnaires: data.questionnaires,
+    })
+    .eq("id", userId);
+
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/admin/${userId}`);
+  revalidatePath("/admin");
+  return { ok: true as const };
+}
+
 /**
  * Médico exclui um paciente por completo (conta + dados).
  * Usa a SERVICE ROLE KEY para remover a conta em auth.users; as tabelas
