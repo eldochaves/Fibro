@@ -35,6 +35,12 @@ export interface QuestionnaireDef {
   icon: string;
   /** Doenças para as quais este questionário costuma ser indicado (sugestão). */
   diseases: string[];
+  /** Onde as respostas são guardadas. */
+  storage: "assessments" | "responses";
+  /** Rótulo curto do índice (chips na lista do médico). */
+  indexLabel: string;
+  /** Escore máximo (para o gráfico e exibição). */
+  maxScore: number;
 }
 
 export const QUESTIONNAIRES: QuestionnaireDef[] = [
@@ -47,6 +53,9 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     path: "/questionario",
     icon: "📝",
     diseases: ["fibromialgia"],
+    storage: "assessments",
+    indexLabel: "FS",
+    maxScore: 31,
   },
   {
     key: "fiqr",
@@ -57,8 +66,42 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     path: "/fiqr",
     icon: "📈",
     diseases: ["fibromialgia"],
+    storage: "responses",
+    indexLabel: "FIQR",
+    maxScore: 100,
+  },
+  {
+    key: "csi",
+    name: "Sensibilização Central (CSI)",
+    short: "Fibromialgia · CSI",
+    description:
+      "Central Sensitization Inventory — sintomas de centralização/sensibilização da dor.",
+    path: "/csi",
+    icon: "🧠",
+    diseases: ["fibromialgia"],
+    storage: "responses",
+    indexLabel: "CSI",
+    maxScore: 100,
+  },
+  {
+    key: "pcs",
+    name: "Catastrofização da Dor (PCS)",
+    short: "Fibromialgia · PCS",
+    description:
+      "Pain Catastrophizing Scale — ruminação, magnificação e desamparo diante da dor.",
+    path: "/pcs",
+    icon: "🌀",
+    diseases: ["fibromialgia"],
+    storage: "responses",
+    indexLabel: "PCS",
+    maxScore: 52,
   },
 ];
 
 export const QUESTIONNAIRE_BY_KEY: Record<string, QuestionnaireDef> =
   Object.fromEntries(QUESTIONNAIRES.map((q) => [q.key, q]));
+
+/** Questionários guardados em questionnaire_responses (genéricos). */
+export const RESPONSE_QUESTIONNAIRES = QUESTIONNAIRES.filter(
+  (q) => q.storage === "responses"
+);

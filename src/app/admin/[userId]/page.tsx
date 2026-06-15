@@ -13,7 +13,7 @@ import { PatientCareEditor } from "./PatientCareEditor";
 import { PainEpisodeList, type PainEpisode } from "@/components/PainEpisodeList";
 import { Avatar } from "@/components/Avatar";
 import { formatCPF, formatPhone } from "@/lib/masks";
-import { DISEASE_LABEL } from "@/lib/questionnaires";
+import { DISEASE_LABEL, RESPONSE_QUESTIONNAIRES } from "@/lib/questionnaires";
 import {
   BODY_AREAS,
   SSS_SEVERITY_ITEMS,
@@ -25,16 +25,22 @@ export const dynamic = "force-dynamic";
 
 const AREA_LABEL = new Map(BODY_AREAS.map((a) => [a.id, a.label]));
 
-interface FiqrRow {
+interface QrRow {
   id: string;
+  questionnaire_key: string;
   created_at: string;
   score: number | null;
-  summary: {
-    function?: number;
-    overall?: number;
-    symptoms?: number;
-    category?: string;
-  } | null;
+  summary: Record<string, unknown> | null;
+}
+
+function summaryLine(key: string, s: Record<string, unknown> | null): string {
+  if (!s) return "";
+  if (key === "fiqr")
+    return `Função ${s.function}/30 · Impacto ${s.overall}/20 · Sintomas ${s.symptoms}/50`;
+  if (key === "pcs")
+    return `Ruminação ${s.rumination}/16 · Magnificação ${s.magnification}/12 · Desamparo ${s.helplessness}/24`;
+  if (typeof s.category === "string") return s.category;
+  return "";
 }
 
 export default async function PatientDetailPage({
@@ -74,19 +80,22 @@ export default async function PatientDetailPage({
       .order("created_at", { ascending: false }),
     supabase
       .from("questionnaire_responses")
-      .select("id, created_at, score, summary")
+      .select("id, questionnaire_key, created_at, score, summary")
       .eq("user_id", userId)
-      .eq("questionnaire_key", "fiqr")
       .order("created_at", { ascending: false }),
   ]);
 
   if (!profile) notFound();
   const list = assessments ?? [];
   const painEpisodes = episodes ?? [];
-  const fiqrList = (fiqrData ?? []) as FiqrRow[];
-  const fiqrChart: ChartPoint[] = [...fiqrList]
-    .reverse()
-    .map((r) => ({ date: r.created_at, score: Number(r.score ?? 0) }));
+
+  // Agrupa respostas genéricas (FIQR, CSI, PCS…) por questionário
+  const qrAll = (fiqrData ?? []) as QrRow[];
+  const qrByKey = new Map<string, QrRow[]>();
+  for (const r of qrAll) {
+    if (!qrByKey.has(r.questionnaire_key)) qrByKey.set(r.questionnaire_key, []);
+    qrByKey.get(r.questionnaire_key)!.push(r);
+  }
 
   // Pontos do gráfico em ordem cronológica crescente
   const chartPoints: ChartPoint[] = [...list]
@@ -265,41 +274,52 @@ export default async function PatientDetailPage({
           </div>
         )}
 
-        {fiqrList.length > 0 && (
-          <div className="mt-8">
-            <h2 className="mb-3 text-sm font-semibold text-navy-700">
-              Impacto da Fibromialgia · FIQR ({fiqrList.length})
-            </h2>
-            {fiqrChart.length >= 2 && (
-              <div className="card mb-3">
-                <SeverityChart
-                  points={fiqrChart}
-                  maxScore={100}
-                  caption="Escore total do FIQR (0–100) ao longo do tempo — quanto menor, melhor."
-                />
-              </div>
-            )}
-            <ul className="space-y-3">
-              {fiqrList.map((r) => (
-                <li key={r.id} className="card flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-semibold text-navy-800">
-                      {formatDateTime(r.created_at)}
-                    </div>
-                    {r.summary && (
-                      <div className="mt-1 text-xs text-navy-400">
-                        Função {r.summary.function}/30 · Impacto{" "}
-                        {r.summary.overall}/20 · Sintomas {r.summary.symptoms}/50
-                        {r.summary.category ? ` · ${r.summary.category}` : ""}
+        {RESPONSE_QUESTIONNAIRES.map((def) => {
+          const rows = qrByKey.get(def.key) ?? [];
+          if (rows.length === 0) return null;
+          const chart: ChartPoint[] = [...rows]
+            .reverse()
+            .map((r) => ({ date: r.created_at, score: Number(r.score ?? 0) }));
+          return (
+            <div key={def.key} className="mt-8">
+              <h2 className="mb-3 text-sm font-semibold text-navy-700">
+                {def.name} ({rows.length})
+              </h2>
+              {chart.length >= 2 && (
+                <div className="card mb-3">
+                  <SeverityChart
+                    points={chart}
+                    maxScore={def.maxScore}
+                    caption={`Escore do ${def.indexLabel} (0–${def.maxScore}) ao longo do tempo.`}
+                  />
+                </div>
+              )}
+              <ul className="space-y-3">
+                {rows.map((r) => {
+                  const line = summaryLine(def.key, r.summary);
+                  return (
+                    <li
+                      key={r.id}
+                      className="card flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="text-sm font-semibold text-navy-800">
+                          {formatDateTime(r.created_at)}
+                        </div>
+                        {line && (
+                          <div className="mt-1 text-xs text-navy-400">{line}</div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <span className="chip-teal">{r.score}/100</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+                      <span className="chip-teal">
+                        {r.score}/{def.maxScore}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
 
         {profile.pain_diary_enabled && (
           <div className="mt-8">

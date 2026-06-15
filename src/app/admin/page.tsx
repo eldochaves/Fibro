@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getContext } from "@/lib/session";
+import { RESPONSE_QUESTIONNAIRES } from "@/lib/questionnaires";
 import { AdminPatientsList, type PatientSummary } from "./AdminPatientsList";
 
 export const dynamic = "force-dynamic";
@@ -27,9 +28,6 @@ interface ProfileRow {
   avatar_url: string | null;
   diseases: string[] | null;
 }
-
-// Rótulo curto de índice por questionário (questionnaire_responses)
-const QR_INDEX_LABEL: Record<string, string> = { fiqr: "FIQR" };
 
 export default async function AdminPage() {
   const { supabase, user, isAdmin } = await getContext();
@@ -91,13 +89,13 @@ export default async function AdminPage() {
           highlight: latestAcr.meets_criteria,
         });
       }
-      for (const key of Object.keys(QR_INDEX_LABEL)) {
-        const r = latestQr.get(`${p.id}|${key}`);
+      for (const def of RESPONSE_QUESTIONNAIRES) {
+        const r = latestQr.get(`${p.id}|${def.key}`);
         if (r) {
           indices.push({
-            label: QR_INDEX_LABEL[key],
+            label: def.indexLabel,
             value: Number(r.score ?? 0),
-            suffix: "/100",
+            suffix: `/${def.maxScore}`,
           });
           latestTs = Math.max(latestTs, Date.parse(r.created_at));
         }

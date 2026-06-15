@@ -13,6 +13,8 @@ import {
   type FibroAnswers,
 } from "@/lib/acr2016";
 import { computeFiqr } from "@/lib/fiqr";
+import { computeCsi } from "@/lib/csi";
+import { computePcs } from "@/lib/pcs";
 
 /** Salva uma avaliação ACR 2016 para o usuário autenticado. */
 export async function saveAssessment(answers: FibroAnswers) {
@@ -399,6 +401,53 @@ export async function saveFiqr(answers: Record<string, number>) {
 
   if (error) return { ok: false as const, error: error.message };
   revalidatePath("/fiqr");
+  return { ok: true as const, result };
+}
+
+/** Paciente salva uma resposta do CSI (cálculo no servidor). */
+export async function saveCsi(answers: Record<string, number>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const result = computeCsi(answers);
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: "csi",
+    answers,
+    score: result.total,
+    summary: { category: result.category.label },
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/csi");
+  return { ok: true as const, result };
+}
+
+/** Paciente salva uma resposta do PCS (cálculo no servidor). */
+export async function savePcs(answers: Record<string, number>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const result = computePcs(answers);
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: "pcs",
+    answers,
+    score: result.total,
+    summary: {
+      rumination: result.rumination,
+      magnification: result.magnification,
+      helplessness: result.helplessness,
+      category: result.category.label,
+    },
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/pcs");
   return { ok: true as const, result };
 }
 
