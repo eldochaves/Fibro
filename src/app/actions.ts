@@ -232,17 +232,27 @@ export async function adminSetPainDiary(userId: string, enabled: boolean) {
 
   const wasEnabled = profile?.pain_diary_enabled === true;
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("profiles")
     .update({ pain_diary_enabled: enabled })
-    .eq("id", userId);
+    .eq("id", userId)
+    .select("pain_diary_enabled")
+    .maybeSingle();
 
   if (error) return { ok: false as const, error: error.message };
+  if (!updated) {
+    return {
+      ok: false as const,
+      error:
+        "A alteração não foi salva (sem permissão). Rode a migração de políticas do médico (migration_002) no Supabase.",
+    };
+  }
+  const savedEnabled = updated.pain_diary_enabled === true;
   revalidatePath(`/admin/${userId}`);
 
   // Só notifica quando passa de desabilitado -> habilitado
-  if (!enabled || wasEnabled) {
-    return { ok: true as const, enabled, notified: false as const };
+  if (!savedEnabled || wasEnabled) {
+    return { ok: true as const, enabled: savedEnabled, notified: false as const };
   }
 
   const firstName = (profile?.full_name ?? "").split(" ")[0] || "Olá";
@@ -275,7 +285,7 @@ export async function adminSetPainDiary(userId: string, enabled: boolean) {
 
   return {
     ok: true as const,
-    enabled,
+    enabled: savedEnabled,
     notified: true as const,
     emailStatus,
     whatsappLink: buildWhatsappLink(profile?.phone, message),
@@ -320,6 +330,19 @@ export async function addPainEpisode(data: PainEpisodeInput) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  // Verifica se o diário ainda está habilitado (tela pode estar desatualizada)
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("pain_diary_enabled")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (prof?.pain_diary_enabled !== true) {
+    return {
+      ok: false as const,
+      error: "O Diário de Dor não está mais habilitado pelo seu médico.",
+    };
+  }
 
   const { error } = await supabase.from("pain_episodes").insert({
     user_id: user.id,

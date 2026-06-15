@@ -36,10 +36,11 @@ export function PainDiaryToggle({
       return;
     }
 
-    setEnabled(next);
+    // Usa o valor realmente salvo no banco (autoritativo)
+    setEnabled(res.enabled);
     router.refresh();
 
-    if (next && res.notified) {
+    if (res.enabled && res.notified) {
       setWaLink(res.whatsappLink ?? null);
       setMailtoLink(res.mailtoLink ?? null);
       setAutoSent(res.emailStatus === "sent");
