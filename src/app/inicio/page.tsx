@@ -5,18 +5,51 @@ import { Footer } from "@/components/Footer";
 import { Avatar } from "@/components/Avatar";
 import { getContext, isProfileComplete } from "@/lib/session";
 import { QUESTIONNAIRES } from "@/lib/questionnaires";
+import { normalizeFrequency, nextAvailable } from "@/lib/availability";
 
 export const dynamic = "force-dynamic";
 
 export default async function InicioPage() {
-  const { user, isAdmin, profile } = await getContext();
+  const { supabase, user, isAdmin, profile } = await getContext();
   if (isAdmin) redirect("/admin");
   if (!isProfileComplete(profile)) redirect("/perfil");
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "";
   const diaryEnabled = profile?.pain_diary_enabled === true;
   const assignedKeys = profile?.questionnaires ?? [];
+  const freqMap = profile?.questionnaire_freq ?? {};
   const assigned = QUESTIONNAIRES.filter((q) => assignedKeys.includes(q.key));
+
+  // Datas do último preenchimento por questionário
+  const lastByKey: Record<string, string | null> = {};
+  if (assigned.length > 0) {
+    const [{ data: lastAcr }, { data: qrs }] = await Promise.all([
+      supabase
+        .from("assessments")
+        .select("created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("questionnaire_responses")
+        .select("questionnaire_key, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
+    ]);
+    lastByKey["acr2016"] = lastAcr?.created_at ?? null;
+    for (const r of qrs ?? []) {
+      if (!(r.questionnaire_key in lastByKey))
+        lastByKey[r.questionnaire_key] = r.created_at;
+    }
+  }
+
+  const items = assigned.map((q) => {
+    const freq = normalizeFrequency(freqMap[q.key]);
+    const na = nextAvailable(freq, lastByKey[q.key]);
+    return { q, status: na === null ? "available" : na === "never" ? "done" : "scheduled", nextDate: na instanceof Date ? na : null };
+  });
+
   const hasSomething = assigned.length > 0 || diaryEnabled;
 
   return (
@@ -50,16 +83,29 @@ export default async function InicioPage() {
           </div>
         ) : (
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {assigned.map((q) => (
-              <ActionCard
-                key={q.key}
-                href={q.path}
-                icon={q.icon}
-                title={q.name}
-                desc={q.description}
-                cta="Preencher"
-              />
-            ))}
+            {items.map(({ q, status, nextDate }) =>
+              status === "available" ? (
+                <ActionCard
+                  key={q.key}
+                  href={q.path}
+                  icon={q.icon}
+                  title={q.name}
+                  desc={q.description}
+                  cta="Preencher"
+                />
+              ) : (
+                <LockedCard
+                  key={q.key}
+                  icon={q.icon}
+                  title={q.name}
+                  note={
+                    status === "done"
+                      ? "Já respondido."
+                      : `Disponível novamente em ${formatDate(nextDate!)}`
+                  }
+                />
+              )
+            )}
 
             {diaryEnabled && (
               <ActionCard
@@ -100,6 +146,14 @@ export default async function InicioPage() {
   );
 }
 
+function formatDate(d: Date) {
+  return d.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 function ActionCard({
   href,
   icon,
@@ -130,5 +184,30 @@ function ActionCard({
         <span className="transition group-hover:translate-x-0.5">→</span>
       </span>
     </Link>
+  );
+}
+
+function LockedCard({
+  icon,
+  title,
+  note,
+}: {
+  icon: string;
+  title: string;
+  note: string;
+}) {
+  return (
+    <div className="card flex flex-col opacity-75">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-navy-50 text-2xl grayscale">
+        {icon}
+      </div>
+      <h2 className="mt-4 font-display text-lg font-semibold text-navy-800">
+        {title}
+      </h2>
+      <p className="mt-1 flex-1 text-sm text-navy-500">{note}</p>
+      <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-navy-300">
+        ✓ Concluído por enquanto
+      </span>
+    </div>
   );
 }

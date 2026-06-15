@@ -141,18 +141,32 @@ export async function adminDeleteAssessment(assessmentId: string, userId: string
 /** Médico define as doenças (etiquetas) e os questionários liberados ao paciente. */
 export async function adminSetPatientCare(
   userId: string,
-  data: { diseases: string[]; questionnaires: string[] }
+  data: {
+    diseases: string[];
+    questionnaires: string[];
+    questionnaire_freq?: Record<string, string>;
+  }
 ) {
   const supabase = await requireAdmin();
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("profiles")
     .update({
       diseases: data.diseases,
       questionnaires: data.questionnaires,
+      questionnaire_freq: data.questionnaire_freq ?? {},
     })
-    .eq("id", userId);
+    .eq("id", userId)
+    .select("id")
+    .maybeSingle();
 
   if (error) return { ok: false as const, error: error.message };
+  if (!updated) {
+    return {
+      ok: false as const,
+      error:
+        "Não foi possível salvar (sem permissão). Rode as migrações do médico no Supabase.",
+    };
+  }
   revalidatePath(`/admin/${userId}`);
   revalidatePath("/admin");
   return { ok: true as const };

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getContext, isProfileComplete } from "@/lib/session";
+import { normalizeFrequency, isAvailableNow } from "@/lib/availability";
 import { FiqrForm } from "./FiqrForm";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,9 @@ export default async function FiqrPage() {
     .order("created_at", { ascending: false });
   const history = (data ?? []) as QrRow[];
 
+  const freq = normalizeFrequency(profile?.questionnaire_freq?.["fiqr"]);
+  const available = isAvailableNow(freq, history[0]?.created_at ?? null);
+
   return (
     <>
       <Header email={user.email} />
@@ -45,7 +49,17 @@ export default async function FiqrPage() {
           itens, 0 é o melhor e 10 é o pior.
         </p>
 
-        <FiqrForm />
+        {available ? (
+          <FiqrForm />
+        ) : (
+          <div className="card text-center text-navy-500">
+            <div className="mb-2 text-3xl">✅</div>
+            <p>
+              Você já respondeu este questionário. Ele ficará disponível
+              novamente conforme a orientação do seu médico.
+            </p>
+          </div>
+        )}
 
         {history.length > 0 && (
           <div className="mt-10">

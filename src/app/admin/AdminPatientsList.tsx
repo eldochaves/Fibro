@@ -5,16 +5,21 @@ import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { DISEASE_LABEL } from "@/lib/questionnaires";
 
+export interface PatientIndex {
+  label: string;
+  value: number;
+  suffix?: string;
+  highlight?: boolean;
+}
+
 export interface PatientSummary {
   id: string;
   fullName: string | null;
   email: string | null;
   avatarUrl: string | null;
   diseases: string[];
-  count: number;
+  indices: PatientIndex[];
   latestDate: string | null;
-  latestMeets: boolean | null;
-  latestScore: number | null;
 }
 
 export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) {
@@ -65,10 +70,11 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
                   <div className="truncate text-xs text-navy-400">
                     {p.email}
                   </div>
-                  <div className="mt-1 text-xs text-navy-300">
-                    {p.count} avaliação(ões)
-                    {p.latestDate && ` · última em ${formatDate(p.latestDate)}`}
-                  </div>
+                  {p.latestDate && (
+                    <div className="mt-1 text-xs text-navy-300">
+                      Última atividade em {formatDate(p.latestDate)}
+                    </div>
+                  )}
                   {p.diseases.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
                       {p.diseases.map((d) => (
@@ -81,18 +87,25 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
                       ))}
                     </div>
                   )}
+                  {p.indices.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {p.indices.map((idx) => (
+                        <span
+                          key={idx.label}
+                          className={`rounded-lg px-2 py-0.5 text-xs font-semibold ${
+                            idx.highlight
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-navy-100 text-navy-600"
+                          }`}
+                          title={idx.label}
+                        >
+                          {idx.label} {idx.value}
+                          {idx.suffix ?? ""}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {p.latestScore !== null && (
-                  <span
-                    className={`ml-3 shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
-                      p.latestMeets
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-navy-100 text-navy-500"
-                    }`}
-                  >
-                    FS {p.latestScore}
-                  </span>
-                )}
               </Link>
             </li>
           ))}

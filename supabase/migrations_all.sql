@@ -165,3 +165,9 @@ drop policy if exists "qr_delete_own_or_admin" on public.questionnaire_responses
 create policy "qr_delete_own_or_admin"
   on public.questionnaire_responses for delete
   using (auth.uid() = user_id or public.is_admin());
+
+-- ---------------------------------------------------------------------
+-- 008 — Frequência de disponibilidade por questionário
+-- ---------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists questionnaire_freq jsonb not null default '{}';
