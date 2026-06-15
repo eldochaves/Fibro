@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { addPainEpisode } from "@/app/actions";
+import { Face, moodFor } from "@/components/FaceScale";
 
 function evaColor(v: number): string {
   // 0 = verde (120), 10 = vermelho (0)
@@ -127,6 +128,14 @@ export function DiarioForm() {
 
       <div>
         <span className="label">Intensidade da dor (EVA 0–10)</span>
+        {eva !== null && (
+          <div className="mb-2 flex items-center justify-center gap-2">
+            <Face color={evaColor(eva)} mood={moodFor(eva, 10)} />
+            <span className="text-sm font-bold" style={{ color: evaColor(eva) }}>
+              {eva}/10
+            </span>
+          </div>
+        )}
         <div className="grid grid-cols-6 gap-2 sm:grid-cols-11">
           {Array.from({ length: 11 }, (_, v) => {
             const active = eva === v;

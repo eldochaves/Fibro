@@ -13,6 +13,7 @@ import {
   type FiqrItem,
 } from "@/lib/fiqr";
 import { saveFiqr } from "@/app/actions";
+import { scaleColor } from "@/lib/scaleColor";
 
 export function FiqrForm() {
   const router = useRouter();
@@ -174,6 +175,7 @@ function ScaleRow({
       <div className="grid grid-cols-11 gap-1">
         {Array.from({ length: 11 }, (_, v) => {
           const active = value === v;
+          const color = scaleColor(v, 10);
           return (
             <button
               key={v}
@@ -181,11 +183,12 @@ function ScaleRow({
               onClick={() => onChange(v)}
               aria-pressed={active}
               aria-label={`${item.label}: ${v}`}
-              className={`rounded-md border py-2 text-xs font-semibold transition ${
+              className="rounded-md border py-2 text-xs font-bold transition"
+              style={
                 active
-                  ? "border-teal-600 bg-teal-600 text-white"
-                  : "border-navy-200 bg-white text-navy-600 hover:border-navy-300"
-              }`}
+                  ? { backgroundColor: color, borderColor: color, color: "#fff" }
+                  : { borderColor: "#dbe6ee", color }
+              }
             >
               {v}
             </button>

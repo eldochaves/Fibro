@@ -4,16 +4,17 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BODY_AREAS,
-  REGION_LABELS,
-  GENERALIZED_REGIONS,
   SSS_SEVERITY_ITEMS,
   SSS_SEVERITY_OPTIONS,
   SSS_SYMPTOM_ITEMS,
   evaluate,
   type FibroAnswers,
-  type Region,
 } from "@/lib/acr2016";
 import { saveAssessment } from "@/app/actions";
+import { BodyMap } from "@/components/BodyMap";
+import { FaceScale } from "@/components/FaceScale";
+
+const AREA_LABEL = new Map(BODY_AREAS.map((a) => [a.id, a.label]));
 
 const STEPS = [
   "Áreas de dor",
@@ -53,16 +54,6 @@ export function QuestionarioForm() {
   );
 
   const result = useMemo(() => evaluate(answers), [answers]);
-
-  // Áreas agrupadas por região
-  const areasByRegion = useMemo(() => {
-    const map = new Map<Region, typeof BODY_AREAS>();
-    for (const area of BODY_AREAS) {
-      if (!map.has(area.region)) map.set(area.region, []);
-      map.get(area.region)!.push(area);
-    }
-    return map;
-  }, []);
 
   function toggleArea(id: string) {
     setPainAreas((prev) => {
@@ -124,46 +115,29 @@ export function QuestionarioForm() {
             </p>
           </div>
 
-          {GENERALIZED_REGIONS.map((region) => (
-            <div key={region} className="card">
-              <h3 className="mb-3 text-sm font-semibold text-navy-700">
-                {REGION_LABELS[region]}
-              </h3>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {areasByRegion.get(region)?.map((area) => {
-                  const active = painAreas.has(area.id);
-                  return (
-                    <button
-                      key={area.id}
-                      type="button"
-                      onClick={() => toggleArea(area.id)}
-                      aria-pressed={active}
-                      className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition ${
-                        active
-                          ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
-                          : "border-navy-200 bg-white text-navy-700 hover:border-navy-300"
-                      }`}
-                    >
-                      <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                          active
-                            ? "border-teal-600 bg-teal-600 text-white"
-                            : "border-navy-300"
-                        }`}
-                      >
-                        {active && <CheckIcon />}
-                      </span>
-                      {area.label}
-                    </button>
-                  );
-                })}
+          <div className="card">
+            <BodyMap selected={painAreas} onToggle={toggleArea} />
+            <p className="mt-3 text-center text-sm text-navy-400">
+              Toque nas áreas onde sentiu dor. Selecionadas:{" "}
+              <strong className="text-teal-700">{painAreas.size}</strong> de 19
+            </p>
+            {painAreas.size > 0 && (
+              <div className="mt-3 flex flex-wrap justify-center gap-1.5 border-t border-navy-100 pt-3">
+                {Array.from(painAreas).map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => toggleArea(id)}
+                    className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700 hover:bg-teal-100"
+                    aria-label={`Remover ${AREA_LABEL.get(id)}`}
+                  >
+                    {AREA_LABEL.get(id)}
+                    <span aria-hidden>✕</span>
+                  </button>
+                ))}
               </div>
-            </div>
-          ))}
-
-          <p className="text-center text-sm text-navy-400">
-            Áreas marcadas: <strong>{painAreas.size}</strong> de 19
-          </p>
+            )}
+          </div>
         </section>
       )}
 
@@ -184,28 +158,17 @@ export function QuestionarioForm() {
                 {item.label}
               </h3>
               <p className="mb-3 text-xs text-navy-400">{item.description}</p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {SSS_SEVERITY_OPTIONS.map((opt) => {
-                  const active = severity[item.id] === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() =>
-                        setSeverity((s) => ({ ...s, [item.id]: opt.value }))
-                      }
-                      aria-pressed={active}
-                      className={`rounded-xl border px-3 py-3 text-sm font-medium transition ${
-                        active
-                          ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
-                          : "border-navy-200 bg-white text-navy-700 hover:border-navy-300"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
+              <FaceScale
+                value={severity[item.id]}
+                max={3}
+                options={SSS_SEVERITY_OPTIONS.map((o) => ({
+                  value: o.value,
+                  label: o.label.replace(/^\d+\s*[—-]\s*/, ""),
+                }))}
+                onChange={(v) =>
+                  setSeverity((s) => ({ ...s, [item.id]: v }))
+                }
+              />
             </div>
           ))}
         </section>
