@@ -12,6 +12,7 @@ import {
   fibromyalgiaSeverityScore,
   type FibroAnswers,
 } from "@/lib/acr2016";
+import { computeFiqr } from "@/lib/fiqr";
 
 /** Salva uma avaliação ACR 2016 para o usuário autenticado. */
 export async function saveAssessment(answers: FibroAnswers) {
@@ -333,6 +334,50 @@ export async function addPainEpisode(data: PainEpisodeInput) {
 
   if (error) return { ok: false as const, error: error.message };
   revalidatePath("/diario");
+  return { ok: true as const };
+}
+
+/** Paciente salva uma resposta do FIQR (cálculo feito no servidor). */
+export async function saveFiqr(answers: Record<string, number>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const result = computeFiqr(answers);
+
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: "fiqr",
+    answers,
+    score: result.total,
+    summary: {
+      function: result.functionScore,
+      overall: result.overallScore,
+      symptoms: result.symptomsScore,
+      category: result.category.label,
+    },
+  });
+
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/fiqr");
+  return { ok: true as const, result };
+}
+
+/** Apaga uma resposta de questionário (paciente: as próprias; médico: qualquer). */
+export async function deleteQuestionnaireResponse(id: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { error } = await supabase
+    .from("questionnaire_responses")
+    .delete()
+    .eq("id", id);
+  if (error) return { ok: false as const, error: error.message };
   return { ok: true as const };
 }
 

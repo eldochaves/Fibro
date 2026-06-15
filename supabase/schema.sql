@@ -174,6 +174,47 @@ create policy "pain_delete_own_or_admin"
   using (auth.uid() = user_id or public.is_admin());
 
 -- ---------------------------------------------------------------------
+-- 4c. Respostas genéricas de questionários (ex.: FIQR) + RLS
+-- ---------------------------------------------------------------------
+create table if not exists public.questionnaire_responses (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  questionnaire_key text not null,
+  created_at timestamptz not null default now(),
+  answers jsonb not null,
+  score numeric,
+  summary jsonb
+);
+
+create index if not exists qr_user_idx on public.questionnaire_responses (user_id);
+create index if not exists qr_key_idx on public.questionnaire_responses (questionnaire_key);
+create index if not exists qr_created_idx on public.questionnaire_responses (created_at desc);
+
+alter table public.questionnaire_responses enable row level security;
+
+drop policy if exists "qr_select_own_or_admin" on public.questionnaire_responses;
+create policy "qr_select_own_or_admin"
+  on public.questionnaire_responses for select
+  using (auth.uid() = user_id or public.is_admin());
+
+drop policy if exists "qr_insert_own_assigned" on public.questionnaire_responses;
+create policy "qr_insert_own_assigned"
+  on public.questionnaire_responses for insert
+  with check (
+    auth.uid() = user_id
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and questionnaire_key = any (p.questionnaires)
+    )
+  );
+
+drop policy if exists "qr_delete_own_or_admin" on public.questionnaire_responses;
+create policy "qr_delete_own_or_admin"
+  on public.questionnaire_responses for delete
+  using (auth.uid() = user_id or public.is_admin());
+
+-- ---------------------------------------------------------------------
 -- 5. Trigger: cria automaticamente um profile ao criar usuário
 -- ---------------------------------------------------------------------
 create or replace function public.handle_new_user()

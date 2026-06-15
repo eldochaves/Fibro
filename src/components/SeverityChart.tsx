@@ -7,7 +7,15 @@ export interface ChartPoint {
  * Gráfico de linha simples (SVG) da evolução do escore de severidade (FS, 0–31).
  * Recebe os pontos em ordem cronológica crescente.
  */
-export function SeverityChart({ points }: { points: ChartPoint[] }) {
+export function SeverityChart({
+  points,
+  maxScore = 31,
+  caption = "Escore de severidade (FS) ao longo do tempo — quanto menor, melhor.",
+}: {
+  points: ChartPoint[];
+  maxScore?: number;
+  caption?: string;
+}) {
   if (points.length < 2) return null;
 
   const W = 320;
@@ -16,7 +24,6 @@ export function SeverityChart({ points }: { points: ChartPoint[] }) {
   const padR = 8;
   const padT = 10;
   const padB = 20;
-  const maxScore = 31;
 
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
@@ -27,7 +34,7 @@ export function SeverityChart({ points }: { points: ChartPoint[] }) {
     padT + innerH - (Math.min(score, maxScore) / maxScore) * innerH;
 
   const line = points.map((p, i) => `${x(i)},${y(p.score)}`).join(" ");
-  const gridScores = [0, 10, 20, 31];
+  const gridScores = [0, Math.round(maxScore / 2), maxScore];
 
   return (
     <div className="w-full overflow-x-auto">
@@ -69,9 +76,7 @@ export function SeverityChart({ points }: { points: ChartPoint[] }) {
           <circle key={i} cx={x(i)} cy={y(p.score)} r={3} fill="#1f7d70" />
         ))}
       </svg>
-      <p className="mt-1 text-center text-xs text-navy-300">
-        Escore de severidade (FS) ao longo do tempo — quanto menor, melhor.
-      </p>
+      <p className="mt-1 text-center text-xs text-navy-300">{caption}</p>
     </div>
   );
 }

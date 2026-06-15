@@ -48,6 +48,16 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     icon: "📝",
     diseases: ["fibromialgia"],
   },
+  {
+    key: "fiqr",
+    name: "Impacto da Fibromialgia (FIQR)",
+    short: "Fibromialgia · FIQR",
+    description:
+      "Mede o impacto da fibromialgia no dia a dia (função, impacto global e sintomas).",
+    path: "/fiqr",
+    icon: "📈",
+    diseases: ["fibromialgia"],
+  },
 ];
 
 export const QUESTIONNAIRE_BY_KEY: Record<string, QuestionnaireDef> =

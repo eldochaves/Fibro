@@ -25,6 +25,18 @@ export const dynamic = "force-dynamic";
 
 const AREA_LABEL = new Map(BODY_AREAS.map((a) => [a.id, a.label]));
 
+interface FiqrRow {
+  id: string;
+  created_at: string;
+  score: number | null;
+  summary: {
+    function?: number;
+    overall?: number;
+    symptoms?: number;
+    category?: string;
+  } | null;
+}
+
 export default async function PatientDetailPage({
   params,
 }: {
@@ -34,33 +46,47 @@ export default async function PatientDetailPage({
   const { supabase, user, isAdmin } = await getContext();
   if (!isAdmin) redirect("/historico");
 
-  const [{ data: profile }, { data: assessments }, { data: episodes }] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select(
-          "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled, diseases, questionnaires"
-        )
-        .eq("id", userId)
-        .maybeSingle(),
-      supabase
-        .from("assessments")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("pain_episodes")
-        .select(
-          "id, episode_date, start_time, activity, location, eva, radiation, end_time"
-        )
-        .eq("user_id", userId)
-        .order("episode_date", { ascending: false })
-        .order("created_at", { ascending: false }),
-    ]);
+  const [
+    { data: profile },
+    { data: assessments },
+    { data: episodes },
+    { data: fiqrData },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select(
+        "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled, diseases, questionnaires"
+      )
+      .eq("id", userId)
+      .maybeSingle(),
+    supabase
+      .from("assessments")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("pain_episodes")
+      .select(
+        "id, episode_date, start_time, activity, location, eva, radiation, end_time"
+      )
+      .eq("user_id", userId)
+      .order("episode_date", { ascending: false })
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("questionnaire_responses")
+      .select("id, created_at, score, summary")
+      .eq("user_id", userId)
+      .eq("questionnaire_key", "fiqr")
+      .order("created_at", { ascending: false }),
+  ]);
 
   if (!profile) notFound();
   const list = assessments ?? [];
   const painEpisodes = episodes ?? [];
+  const fiqrList = (fiqrData ?? []) as FiqrRow[];
+  const fiqrChart: ChartPoint[] = [...fiqrList]
+    .reverse()
+    .map((r) => ({ date: r.created_at, score: Number(r.score ?? 0) }));
 
   // Pontos do gráfico em ordem cronológica crescente
   const chartPoints: ChartPoint[] = [...list]
@@ -233,6 +259,42 @@ export default async function PatientDetailPage({
                 </details>
               );
             })}
+          </div>
+        )}
+
+        {fiqrList.length > 0 && (
+          <div className="mt-8">
+            <h2 className="mb-3 text-sm font-semibold text-navy-700">
+              Impacto da Fibromialgia · FIQR ({fiqrList.length})
+            </h2>
+            {fiqrChart.length >= 2 && (
+              <div className="card mb-3">
+                <SeverityChart
+                  points={fiqrChart}
+                  maxScore={100}
+                  caption="Escore total do FIQR (0–100) ao longo do tempo — quanto menor, melhor."
+                />
+              </div>
+            )}
+            <ul className="space-y-3">
+              {fiqrList.map((r) => (
+                <li key={r.id} className="card flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-navy-800">
+                      {formatDateTime(r.created_at)}
+                    </div>
+                    {r.summary && (
+                      <div className="mt-1 text-xs text-navy-400">
+                        Função {r.summary.function}/30 · Impacto{" "}
+                        {r.summary.overall}/20 · Sintomas {r.summary.symptoms}/50
+                        {r.summary.category ? ` · ${r.summary.category}` : ""}
+                      </div>
+                    )}
+                  </div>
+                  <span className="chip-teal">{r.score}/100</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
