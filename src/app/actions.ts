@@ -444,6 +444,7 @@ export async function savePcs(answers: Record<string, number>) {
       magnification: result.magnification,
       helplessness: result.helplessness,
       category: result.category.label,
+      clinical: result.clinical,
     },
   });
   if (error) return { ok: false as const, error: error.message };

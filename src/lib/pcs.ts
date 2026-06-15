@@ -39,6 +39,20 @@ const RUMINATION = ["p8", "p9", "p10", "p11"];
 const MAGNIFICATION = ["p6", "p7", "p13"];
 const HELPLESSNESS = ["p1", "p2", "p3", "p4", "p5", "p12"];
 
+// Pontos de corte clínicos (percentil 75 em dor crônica) e faixas máximas
+export const PCS_CUTOFFS = {
+  total: 30, // ≥ 30 = catastrofização clinicamente relevante
+  rumination: 11, // > 11
+  magnification: 5, // > 5
+  helplessness: 13, // > 13
+};
+export const PCS_MAX = {
+  total: 52,
+  rumination: 16,
+  magnification: 12,
+  helplessness: 24,
+};
+
 export type PcsAnswers = Record<string, number>;
 
 export interface PcsResult {
@@ -46,7 +60,16 @@ export interface PcsResult {
   rumination: number; // 0–16
   magnification: number; // 0–12
   helplessness: number; // 0–24
-  category: { label: string; tone: "good" | "moderate" | "severe" };
+  /** Nível de severidade do escore total. */
+  category: { label: string; tone: "good" | "mild" | "moderate" | "severe" };
+  /** Total ≥ 30 (percentil 75) — catastrofização clinicamente relevante. */
+  clinical: boolean;
+  /** Subescalas acima do ponto de corte clínico. */
+  subClinical: {
+    rumination: boolean;
+    magnification: boolean;
+    helplessness: boolean;
+  };
 }
 
 export function isPcsComplete(a: PcsAnswers): boolean {
@@ -65,11 +88,28 @@ export function computePcs(a: PcsAnswers): PcsResult {
   const magnification = sum(MAGNIFICATION, a);
   const helplessness = sum(HELPLESSNESS, a);
   const total = rumination + magnification + helplessness;
-  return { total, rumination, magnification, helplessness, category: categorizePcs(total) };
+  return {
+    total,
+    rumination,
+    magnification,
+    helplessness,
+    category: categorizePcs(total),
+    clinical: total >= PCS_CUTOFFS.total,
+    subClinical: {
+      rumination: rumination > PCS_CUTOFFS.rumination,
+      magnification: magnification > PCS_CUTOFFS.magnification,
+      helplessness: helplessness > PCS_CUTOFFS.helplessness,
+    },
+  };
 }
 
+/**
+ * Níveis de severidade do escore total (manual do PCS, Sullivan):
+ *  baixo 0–9 · moderado 10–19 · alto 20–39 · muito alto 40–52
+ */
 export function categorizePcs(total: number): PcsResult["category"] {
-  if (total < 20) return { label: "Baixa catastrofização", tone: "good" };
-  if (total < 30) return { label: "Catastrofização moderada", tone: "moderate" };
-  return { label: "Catastrofização elevada (≥30)", tone: "severe" };
+  if (total <= 9) return { label: "Baixo", tone: "good" };
+  if (total <= 19) return { label: "Moderado", tone: "mild" };
+  if (total <= 39) return { label: "Alto", tone: "moderate" };
+  return { label: "Muito alto", tone: "severe" };
 }

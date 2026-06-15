@@ -48,26 +48,53 @@ export function PcsForm() {
         </div>
         <div className="card space-y-3">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Metric label="Ruminação" value={`${result.rumination}/16`} />
-            <Metric label="Magnificação" value={`${result.magnification}/12`} />
-            <Metric label="Desamparo" value={`${result.helplessness}/24`} />
+            <Metric
+              label="Ruminação"
+              value={`${result.rumination}/16`}
+              flag={result.subClinical.rumination}
+            />
+            <Metric
+              label="Magnificação"
+              value={`${result.magnification}/12`}
+              flag={result.subClinical.magnification}
+            />
+            <Metric
+              label="Desamparo"
+              value={`${result.helplessness}/24`}
+              flag={result.subClinical.helplessness}
+            />
             <Metric label="Total" value={`${result.total}/52`} />
           </div>
           <div
             className={`rounded-xl px-4 py-3 text-sm font-medium ${
               result.category.tone === "good"
                 ? "bg-green-50 text-green-700"
+                : result.category.tone === "mild"
+                ? "bg-teal-50 text-teal-700"
                 : result.category.tone === "moderate"
                 ? "bg-amber-50 text-amber-800"
                 : "bg-red-50 text-red-700"
             }`}
           >
-            {result.category.label}
+            Nível: {result.category.label} ({result.total}/52)
+            {result.clinical &&
+              " · acima do corte clínico (≥30): catastrofização relevante"}
           </div>
-          <p className="text-xs text-navy-300">
-            Corte clínico: total ≥ 30 sugere catastrofização relevante.
-            Ferramenta de apoio, não é diagnóstico.
-          </p>
+          <div className="rounded-xl bg-navy-50 px-4 py-3 text-xs text-navy-500">
+            <p className="font-semibold text-navy-600">Parâmetros (referência)</p>
+            <p className="mt-1">
+              Níveis do total: baixo 0–9 · moderado 10–19 · alto 20–39 · muito
+              alto 40–52.
+            </p>
+            <p className="mt-1">
+              Cortes clínicos (percentil 75): total ≥ 30 · ruminação &gt; 11 ·
+              magnificação &gt; 5 · desamparo &gt; 13. Itens marcados com ⚑ estão
+              acima do corte.
+            </p>
+            <p className="mt-1 text-navy-300">
+              Ferramenta de apoio, não é diagnóstico.
+            </p>
+          </div>
         </div>
         <button
           onClick={() => {
@@ -135,10 +162,24 @@ export function PcsForm() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({
+  label,
+  value,
+  flag,
+}: {
+  label: string;
+  value: string;
+  flag?: boolean;
+}) {
   return (
-    <div className="rounded-xl bg-navy-50 px-3 py-2">
-      <div className="text-xs text-navy-400">{label}</div>
+    <div
+      className={`rounded-xl px-3 py-2 ${
+        flag ? "bg-amber-50 ring-1 ring-amber-200" : "bg-navy-50"
+      }`}
+    >
+      <div className="text-xs text-navy-400">
+        {label} {flag && <span title="Acima do corte clínico">⚑</span>}
+      </div>
       <div className="text-lg font-bold text-navy-900">{value}</div>
     </div>
   );

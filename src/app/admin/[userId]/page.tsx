@@ -38,7 +38,11 @@ function summaryLine(key: string, s: Record<string, unknown> | null): string {
   if (key === "fiqr")
     return `Função ${s.function}/30 · Impacto ${s.overall}/20 · Sintomas ${s.symptoms}/50`;
   if (key === "pcs")
-    return `Ruminação ${s.rumination}/16 · Magnificação ${s.magnification}/12 · Desamparo ${s.helplessness}/24`;
+    return (
+      `Ruminação ${s.rumination}/16 · Magnificação ${s.magnification}/12 · Desamparo ${s.helplessness}/24` +
+      (s.category ? ` · ${s.category}` : "") +
+      (s.clinical ? " · ≥30 (relevante)" : "")
+    );
   if (typeof s.category === "string") return s.category;
   return "";
 }
