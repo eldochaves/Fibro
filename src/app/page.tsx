@@ -28,38 +28,39 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-12">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-10">
       <div className="w-full max-w-md animate-fade-up">
         {/* Marca */}
-        <div className="mb-8 text-center">
+        <div className="mb-7 text-center">
           <Image
             src="/logo.png"
             alt={CLINIC_NAME}
-            width={320}
-            height={89}
+            width={460}
+            height={128}
             priority
-            className="mx-auto h-auto w-72 max-w-full"
+            className="mx-auto h-auto w-full max-w-[360px] sm:max-w-[420px]"
           />
         </div>
 
         {/* Cartão principal */}
         <div className="card shadow-card sm:p-8">
-          <span className="chip-teal mb-4">Acompanhamento · Reumatologia</span>
+          <span className="chip-teal mb-4">💙 Bem-vindo(a)</span>
           <h1 className="font-display text-3xl font-semibold leading-tight text-navy-800">
-            Seu acompanhamento, mais perto do seu médico
+            Que bom ter você aqui
           </h1>
           <p className="mt-3 text-navy-500">
-            Espaço dos pacientes do <strong>Dr. Eldo Chaves</strong> para
-            responder questionários e registrar sintomas pelo celular —
-            estreitando o acompanhamento entre as consultas e ajudando a
-            personalizar o seu tratamento.
+            Este é o espaço dos pacientes do <strong>Dr. Eldo Chaves</strong>.
+            Aqui você responde questionários e registra como está se sentindo,
+            no seu tempo e pelo celular — assim cuidamos de você mais de perto
+            entre as consultas e deixamos o seu tratamento ainda mais
+            personalizado.
           </p>
 
           <Link href="/login" className="btn-primary mt-6 w-full">
             Entrar / Criar conta
           </Link>
           <p className="mt-3 text-center text-sm text-navy-400">
-            Acesse com sua conta Google ou com email e senha.
+            É rápido e gratuito. Entre com o Google ou com email e senha.
           </p>
         </div>
 
