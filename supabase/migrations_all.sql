@@ -182,3 +182,9 @@ create policy "assessments_insert_admin"
 drop policy if exists "qr_insert_admin" on public.questionnaire_responses;
 create policy "qr_insert_admin"
   on public.questionnaire_responses for insert with check (public.is_admin());
+
+-- ---------------------------------------------------------------------
+-- 010 — Solicitação de nova resposta por questionário
+-- ---------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists questionnaire_requests jsonb not null default '{}';

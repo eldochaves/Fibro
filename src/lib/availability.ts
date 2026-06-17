@@ -42,23 +42,42 @@ export function nextAvailable(
   return next.getTime() <= Date.now() ? null : next;
 }
 
-export function isAvailableNow(
-  freq: Frequency,
+/**
+ * Há uma solicitação do médico ainda não atendida? (reabre o questionário,
+ * inclusive os "apenas uma vez"). Verdadeiro quando a solicitação é mais
+ * recente que a última resposta.
+ */
+export function hasOpenRequest(
+  requestedISO: string | null | undefined,
   lastISO: string | null | undefined
 ): boolean {
+  if (!requestedISO) return false;
+  if (!lastISO) return true;
+  return Date.parse(requestedISO) > Date.parse(lastISO);
+}
+
+export function isAvailableNow(
+  freq: Frequency,
+  lastISO: string | null | undefined,
+  requestedISO?: string | null
+): boolean {
+  if (hasOpenRequest(requestedISO, lastISO)) return true;
   return nextAvailable(freq, lastISO) === null;
 }
 
 /**
  * Pendência ("questionário em aberto"): há algo para o paciente responder.
+ *  - solicitação do médico em aberto → pendente
  *  - nunca respondido → sempre pendente (inclui "apenas uma vez" e "sempre")
  *  - recorrente (anual / a cada 4 meses) que reabriu → pendente
  *  - "apenas uma vez" ou "sempre" já respondido → não pendente
  */
 export function isPending(
   freq: Frequency,
-  lastISO: string | null | undefined
+  lastISO: string | null | undefined,
+  requestedISO?: string | null
 ): boolean {
+  if (hasOpenRequest(requestedISO, lastISO)) return true;
   if (!lastISO) return true;
   if (freq === "yearly" || freq === "quarterly4")
     return nextAvailable(freq, lastISO) === null;

@@ -174,6 +174,59 @@ export async function adminSetPatientCare(
   return { ok: true as const };
 }
 
+/**
+ * Médico solicita uma NOVA resposta de um questionário (reabre, inclusive os
+ * "apenas uma vez"). Garante que o questionário esteja liberado ao paciente.
+ */
+export async function adminRequestQuestionnaire(userId: string, key: string) {
+  const supabase = await requireAdmin();
+  const { data: p } = await supabase
+    .from("profiles")
+    .select("questionnaires, questionnaire_requests")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const questionnaires: string[] = p?.questionnaires ?? [];
+  const requests: Record<string, string> = p?.questionnaire_requests ?? {};
+  requests[key] = new Date().toISOString();
+  const nextAssigned = questionnaires.includes(key)
+    ? questionnaires
+    : [...questionnaires, key];
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      questionnaires: nextAssigned,
+      questionnaire_requests: requests,
+    })
+    .eq("id", userId);
+
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/admin/${userId}`);
+  revalidatePath("/admin");
+  return { ok: true as const };
+}
+
+/** Médico cancela uma solicitação de nova resposta. */
+export async function adminCancelRequest(userId: string, key: string) {
+  const supabase = await requireAdmin();
+  const { data: p } = await supabase
+    .from("profiles")
+    .select("questionnaire_requests")
+    .eq("id", userId)
+    .maybeSingle();
+  const requests: Record<string, string> = p?.questionnaire_requests ?? {};
+  delete requests[key];
+  const { error } = await supabase
+    .from("profiles")
+    .update({ questionnaire_requests: requests })
+    .eq("id", userId);
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/admin/${userId}`);
+  revalidatePath("/admin");
+  return { ok: true as const };
+}
+
 // ---------------------------------------------------------------------
 // Cadastro assistido e preenchimento em nome do paciente (Pacote C)
 // ---------------------------------------------------------------------

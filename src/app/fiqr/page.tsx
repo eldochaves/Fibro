@@ -29,7 +29,11 @@ export default async function FiqrPage() {
   const history = (data ?? []) as QrRow[];
 
   const freq = normalizeFrequency(profile?.questionnaire_freq?.["fiqr"]);
-  const available = isAvailableNow(freq, history[0]?.created_at ?? null);
+  const available = isAvailableNow(
+    freq,
+    history[0]?.created_at ?? null,
+    profile?.questionnaire_requests?.["fiqr"]
+  );
 
   return (
     <>

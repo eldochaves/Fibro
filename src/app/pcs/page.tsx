@@ -34,7 +34,11 @@ export default async function PcsPage() {
   const history = (data ?? []) as QrRow[];
 
   const freq = normalizeFrequency(profile?.questionnaire_freq?.["pcs"]);
-  const available = isAvailableNow(freq, history[0]?.created_at ?? null);
+  const available = isAvailableNow(
+    freq,
+    history[0]?.created_at ?? null,
+    profile?.questionnaire_requests?.["pcs"]
+  );
 
   return (
     <>

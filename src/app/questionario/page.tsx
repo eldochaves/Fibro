@@ -22,7 +22,9 @@ export default async function QuestionarioPage() {
     .limit(1)
     .maybeSingle();
   const acrFreq = normalizeFrequency(profile?.questionnaire_freq?.["acr2016"]);
-  if (!isAvailableNow(acrFreq, lastAcr?.created_at ?? null)) redirect("/inicio");
+  const acrReq = profile?.questionnaire_requests?.["acr2016"];
+  if (!isAvailableNow(acrFreq, lastAcr?.created_at ?? null, acrReq))
+    redirect("/inicio");
 
   return (
     <>

@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { Avatar } from "@/components/Avatar";
 import { getContext, isProfileComplete } from "@/lib/session";
 import { QUESTIONNAIRES } from "@/lib/questionnaires";
-import { normalizeFrequency, nextAvailable } from "@/lib/availability";
+import { normalizeFrequency, nextAvailable, isAvailableNow } from "@/lib/availability";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +18,7 @@ export default async function InicioPage() {
   const diaryEnabled = profile?.pain_diary_enabled === true;
   const assignedKeys = profile?.questionnaires ?? [];
   const freqMap = profile?.questionnaire_freq ?? {};
+  const reqMap = profile?.questionnaire_requests ?? {};
   const assigned = QUESTIONNAIRES.filter((q) => assignedKeys.includes(q.key));
 
   // Datas do último preenchimento por questionário
@@ -46,8 +47,17 @@ export default async function InicioPage() {
 
   const items = assigned.map((q) => {
     const freq = normalizeFrequency(freqMap[q.key]);
-    const na = nextAvailable(freq, lastByKey[q.key]);
-    return { q, status: na === null ? "available" : na === "never" ? "done" : "scheduled", nextDate: na instanceof Date ? na : null };
+    const last = lastByKey[q.key];
+    const requested = reqMap[q.key];
+    if (isAvailableNow(freq, last, requested)) {
+      return { q, status: "available" as const, nextDate: null };
+    }
+    const na = nextAvailable(freq, last);
+    return {
+      q,
+      status: na === "never" ? ("done" as const) : ("scheduled" as const),
+      nextDate: na instanceof Date ? na : null,
+    };
   });
 
   const hasSomething = assigned.length > 0 || diaryEnabled;

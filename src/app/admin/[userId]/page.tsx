@@ -19,7 +19,14 @@ import {
   DISEASE_LABEL,
   RESPONSE_QUESTIONNAIRES,
   QUESTIONNAIRES,
+  QUESTIONNAIRE_BY_KEY,
 } from "@/lib/questionnaires";
+import {
+  normalizeFrequency,
+  isPending,
+  hasOpenRequest,
+} from "@/lib/availability";
+import { RequestQuestionnaire, type RequestItem } from "./RequestQuestionnaire";
 import {
   BODY_AREAS,
   SSS_SEVERITY_ITEMS,
@@ -71,7 +78,7 @@ export default async function PatientDetailPage({
     supabase
       .from("profiles")
       .select(
-        "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled, diseases, questionnaires, questionnaire_freq"
+        "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled, diseases, questionnaires, questionnaire_freq, questionnaire_requests"
       )
       .eq("id", userId)
       .maybeSingle(),
@@ -133,6 +140,28 @@ export default async function PatientDetailPage({
       });
     }
   }
+
+  // Status para "solicitar nova resposta"
+  const freqMap = (profile.questionnaire_freq as Record<string, string>) ?? {};
+  const reqMap =
+    (profile.questionnaire_requests as Record<string, string>) ?? {};
+  const lastFor = (key: string): string | null =>
+    key === "acr2016"
+      ? list[0]?.created_at ?? null
+      : qrByKey.get(key)?.[0]?.created_at ?? null;
+  const requestItems: RequestItem[] = ((profile.questionnaires as string[]) ?? [])
+    .filter((k) => QUESTIONNAIRE_BY_KEY[k])
+    .map((key) => {
+      const freq = normalizeFrequency(freqMap[key]);
+      const last = lastFor(key);
+      const requested = reqMap[key];
+      return {
+        key,
+        name: QUESTIONNAIRE_BY_KEY[key].name,
+        pending: isPending(freq, last, requested),
+        hasRequest: hasOpenRequest(requested, last),
+      };
+    });
 
   return (
     <>
@@ -215,6 +244,17 @@ export default async function PatientDetailPage({
                   </Link>
                 ))}
               </div>
+            </div>
+
+            <div className="card print:hidden">
+              <h2 className="font-display text-lg font-semibold text-navy-800">
+                Solicitar nova resposta
+              </h2>
+              <p className="mb-3 mt-1 text-sm text-navy-500">
+                Reabra um questionário para o paciente responder novamente —
+                inclusive os marcados como &quot;apenas uma vez&quot;.
+              </p>
+              <RequestQuestionnaire userId={profile.id} items={requestItems} />
             </div>
 
             <PainDiaryToggle

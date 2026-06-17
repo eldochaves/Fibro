@@ -29,7 +29,11 @@ export default async function CsiPage() {
   const history = (data ?? []) as QrRow[];
 
   const freq = normalizeFrequency(profile?.questionnaire_freq?.["csi"]);
-  const available = isAvailableNow(freq, history[0]?.created_at ?? null);
+  const available = isAvailableNow(
+    freq,
+    history[0]?.created_at ?? null,
+    profile?.questionnaire_requests?.["csi"]
+  );
 
   return (
     <>
