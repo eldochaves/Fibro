@@ -44,13 +44,15 @@ export default async function HomePage() {
 
         {/* Cartão principal */}
         <div className="card shadow-card sm:p-8">
-          <span className="chip-teal mb-4">Critérios ACR 2016</span>
+          <span className="chip-teal mb-4">Acompanhamento · Reumatologia</span>
           <h1 className="font-display text-3xl font-semibold leading-tight text-navy-800">
-            Avaliação de Fibromialgia
+            Seu acompanhamento, mais perto do seu médico
           </h1>
           <p className="mt-3 text-navy-500">
-            Responda ao questionário pelo celular enquanto aguarda a consulta.
-            Leva poucos minutos e ajuda o seu médico a acompanhar a sua evolução.
+            Espaço dos pacientes do <strong>Dr. Eldo Chaves</strong> para
+            responder questionários e registrar sintomas pelo celular —
+            estreitando o acompanhamento entre as consultas e ajudando a
+            personalizar o seu tratamento.
           </p>
 
           <Link href="/login" className="btn-primary mt-6 w-full">
@@ -63,13 +65,13 @@ export default async function HomePage() {
 
         {/* Selos de confiança */}
         <div className="mt-6 grid grid-cols-3 gap-3">
-          <Trust icon="🕒" title="Rápido" desc="~5 minutos" />
+          <Trust icon="🤝" title="Mais perto" desc="Do seu médico" />
           <Trust icon="🔒" title="Seguro" desc="Dados protegidos" />
-          <Trust icon="🩺" title="Médico" desc="Acompanhamento" />
+          <Trust icon="💙" title="Gratuito" desc="Sem custo" />
         </div>
 
         <p className="mt-8 text-center text-xs text-navy-300">
-          Ferramenta de apoio. Não substitui a avaliação médica.
+          Ferramenta de apoio ao tratamento. Não substitui a consulta médica.
         </p>
       </div>
     </main>

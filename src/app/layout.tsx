@@ -4,11 +4,11 @@ import { CLINIC_NAME } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: {
-    default: `${CLINIC_NAME} — Avaliação de Fibromialgia`,
+    default: `${CLINIC_NAME} — Acompanhamento de pacientes`,
     template: `%s · ${CLINIC_NAME}`,
   },
   description:
-    "Questionário de fibromialgia (critérios ACR 2016) e diário de dor para acompanhamento na Clínica Dr. Eldo Chaves.",
+    "Espaço dos pacientes do Dr. Eldo Chaves (Reumatologia) para questionários e acompanhamento, estreitando o cuidado entre as consultas.",
 };
 
 export const viewport: Viewport = {
