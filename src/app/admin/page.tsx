@@ -138,9 +138,11 @@ export default async function AdminPage() {
             <Link href="/admin/lembretes" className="btn-outline">
               🔔 Lembretes
             </Link>
+            <Link href="/admin/novo" className="btn-outline">
+              + Novo paciente
+            </Link>
             <Link href="/admin/convite" className="btn-primary">
-              <span className="hidden sm:inline">Convite / QR</span>
-              <span className="sm:hidden">Convite / QR</span>
+              Convite / QR
             </Link>
           </div>
         </div>

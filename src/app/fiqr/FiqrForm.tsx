@@ -12,10 +12,10 @@ import {
   type FiqrAnswers,
   type FiqrItem,
 } from "@/lib/fiqr";
-import { saveFiqr } from "@/app/actions";
+import { saveFiqr, adminSaveFiqr } from "@/app/actions";
 import { scaleColor } from "@/lib/scaleColor";
 
-export function FiqrForm() {
+export function FiqrForm({ targetUserId }: { targetUserId?: string }) {
   const router = useRouter();
   const [answers, setAnswers] = useState<FiqrAnswers>({});
   const [saving, setSaving] = useState(false);
@@ -33,7 +33,9 @@ export function FiqrForm() {
   async function handleSave() {
     setSaving(true);
     setError(null);
-    const res = await saveFiqr(answers);
+    const res = targetUserId
+      ? await adminSaveFiqr(targetUserId, answers)
+      : await saveFiqr(answers);
     setSaving(false);
     if (res.ok) setSaved(true);
     else setError(res.error ?? "Não foi possível salvar.");
@@ -56,12 +58,12 @@ export function FiqrForm() {
         <FiqrResultCard result={result} />
         <button
           onClick={() => {
-            router.push("/inicio");
+            router.push(targetUserId ? `/admin/${targetUserId}` : "/inicio");
             router.refresh();
           }}
           className="btn-primary w-full"
         >
-          Voltar ao início
+          {targetUserId ? "Voltar à ficha do paciente" : "Voltar ao início"}
         </button>
       </div>
     );

@@ -10,9 +10,9 @@ import {
   isPcsComplete,
   type PcsAnswers,
 } from "@/lib/pcs";
-import { savePcs } from "@/app/actions";
+import { savePcs, adminSavePcs } from "@/app/actions";
 
-export function PcsForm() {
+export function PcsForm({ targetUserId }: { targetUserId?: string }) {
   const router = useRouter();
   const [answers, setAnswers] = useState<PcsAnswers>({});
   const [saving, setSaving] = useState(false);
@@ -26,7 +26,9 @@ export function PcsForm() {
   async function handleSave() {
     setSaving(true);
     setError(null);
-    const res = await savePcs(answers);
+    const res = targetUserId
+      ? await adminSavePcs(targetUserId, answers)
+      : await savePcs(answers);
     setSaving(false);
     if (res.ok) setSaved(true);
     else setError(res.error ?? "Não foi possível salvar.");
@@ -98,12 +100,12 @@ export function PcsForm() {
         </div>
         <button
           onClick={() => {
-            router.push("/inicio");
+            router.push(targetUserId ? `/admin/${targetUserId}` : "/inicio");
             router.refresh();
           }}
           className="btn-primary w-full"
         >
-          Voltar ao início
+          {targetUserId ? "Voltar à ficha do paciente" : "Voltar ao início"}
         </button>
       </div>
     );

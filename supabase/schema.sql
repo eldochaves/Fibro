@@ -112,6 +112,12 @@ create policy "assessments_insert_own"
   on public.assessments for insert
   with check (auth.uid() = user_id);
 
+-- Médico pode inserir avaliações em nome do paciente (preenchimento assistido)
+drop policy if exists "assessments_insert_admin" on public.assessments;
+create policy "assessments_insert_admin"
+  on public.assessments for insert
+  with check (public.is_admin());
+
 -- Admin (médico) pode apagar avaliações
 drop policy if exists "assessments_delete_admin" on public.assessments;
 create policy "assessments_delete_admin"
@@ -209,6 +215,12 @@ create policy "qr_insert_own_assigned"
         and questionnaire_key = any (p.questionnaires)
     )
   );
+
+-- Médico pode inserir respostas em nome do paciente (preenchimento assistido)
+drop policy if exists "qr_insert_admin" on public.questionnaire_responses;
+create policy "qr_insert_admin"
+  on public.questionnaire_responses for insert
+  with check (public.is_admin());
 
 drop policy if exists "qr_delete_own_or_admin" on public.questionnaire_responses;
 create policy "qr_delete_own_or_admin"

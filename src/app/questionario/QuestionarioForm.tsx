@@ -13,7 +13,7 @@ import {
   type FibroAnswers,
   type Region,
 } from "@/lib/acr2016";
-import { saveAssessment } from "@/app/actions";
+import { saveAssessment, adminSaveAssessment } from "@/app/actions";
 import { BodyMap } from "@/components/BodyMap";
 import { FaceScale } from "@/components/FaceScale";
 
@@ -24,7 +24,7 @@ const STEPS = [
   "Resultado",
 ] as const;
 
-export function QuestionarioForm() {
+export function QuestionarioForm({ targetUserId }: { targetUserId?: string }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -88,7 +88,9 @@ export function QuestionarioForm() {
   async function handleSave() {
     setSaving(true);
     setError(null);
-    const res = await saveAssessment(answers);
+    const res = targetUserId
+      ? await adminSaveAssessment(targetUserId, answers)
+      : await saveAssessment(answers);
     setSaving(false);
     if (res.ok) {
       setSaved(true);
@@ -328,12 +330,12 @@ export function QuestionarioForm() {
               <ResultCard result={result} />
               <button
                 onClick={() => {
-                  router.push("/historico");
+                  router.push(targetUserId ? `/admin/${targetUserId}` : "/historico");
                   router.refresh();
                 }}
                 className="btn-primary w-full"
               >
-                Ver meu histórico
+                {targetUserId ? "Voltar à ficha do paciente" : "Ver meu histórico"}
               </button>
             </>
           )}

@@ -171,3 +171,14 @@ create policy "qr_delete_own_or_admin"
 -- ---------------------------------------------------------------------
 alter table public.profiles
   add column if not exists questionnaire_freq jsonb not null default '{}';
+
+-- ---------------------------------------------------------------------
+-- 009 — Médico responde em nome do paciente (preenchimento assistido)
+-- ---------------------------------------------------------------------
+drop policy if exists "assessments_insert_admin" on public.assessments;
+create policy "assessments_insert_admin"
+  on public.assessments for insert with check (public.is_admin());
+
+drop policy if exists "qr_insert_admin" on public.questionnaire_responses;
+create policy "qr_insert_admin"
+  on public.questionnaire_responses for insert with check (public.is_admin());

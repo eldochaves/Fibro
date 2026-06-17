@@ -10,9 +10,9 @@ import {
   isCsiComplete,
   type CsiAnswers,
 } from "@/lib/csi";
-import { saveCsi } from "@/app/actions";
+import { saveCsi, adminSaveCsi } from "@/app/actions";
 
-export function CsiForm() {
+export function CsiForm({ targetUserId }: { targetUserId?: string }) {
   const router = useRouter();
   const [answers, setAnswers] = useState<CsiAnswers>({});
   const [saving, setSaving] = useState(false);
@@ -26,7 +26,9 @@ export function CsiForm() {
   async function handleSave() {
     setSaving(true);
     setError(null);
-    const res = await saveCsi(answers);
+    const res = targetUserId
+      ? await adminSaveCsi(targetUserId, answers)
+      : await saveCsi(answers);
     setSaving(false);
     if (res.ok) setSaved(true);
     else setError(res.error ?? "Não foi possível salvar.");
@@ -60,12 +62,12 @@ export function CsiForm() {
         </div>
         <button
           onClick={() => {
-            router.push("/inicio");
+            router.push(targetUserId ? `/admin/${targetUserId}` : "/inicio");
             router.refresh();
           }}
           className="btn-primary w-full"
         >
-          Voltar ao início
+          {targetUserId ? "Voltar à ficha do paciente" : "Voltar ao início"}
         </button>
       </div>
     );

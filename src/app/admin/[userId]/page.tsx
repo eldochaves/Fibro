@@ -13,7 +13,11 @@ import { PatientCareEditor } from "./PatientCareEditor";
 import { PainEpisodeList, type PainEpisode } from "@/components/PainEpisodeList";
 import { Avatar } from "@/components/Avatar";
 import { formatCPF, formatPhone } from "@/lib/masks";
-import { DISEASE_LABEL, RESPONSE_QUESTIONNAIRES } from "@/lib/questionnaires";
+import {
+  DISEASE_LABEL,
+  RESPONSE_QUESTIONNAIRES,
+  QUESTIONNAIRES,
+} from "@/lib/questionnaires";
 import {
   BODY_AREAS,
   SSS_SEVERITY_ITEMS,
@@ -168,6 +172,27 @@ export default async function PatientDetailPage({
               (profile.questionnaire_freq as Record<string, string>) ?? {}
             }
           />
+        </div>
+
+        <div className="card mb-6 print:hidden">
+          <h2 className="font-display text-lg font-semibold text-navy-800">
+            Responder pelo paciente
+          </h2>
+          <p className="mt-1 text-sm text-navy-500">
+            Preencha um questionário em nome do paciente (ex.: idoso, sem
+            celular). A resposta é salva na conta dele.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {QUESTIONNAIRES.map((q) => (
+              <Link
+                key={q.key}
+                href={`/admin/${profile.id}/responder/${q.key}`}
+                className="btn-outline px-3 py-2 text-sm"
+              >
+                {q.icon} {q.name}
+              </Link>
+            ))}
+          </div>
         </div>
 
         <div className="mb-6">

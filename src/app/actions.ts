@@ -174,6 +174,132 @@ export async function adminSetPatientCare(
   return { ok: true as const };
 }
 
+// ---------------------------------------------------------------------
+// Cadastro assistido e preenchimento em nome do paciente (Pacote C)
+// ---------------------------------------------------------------------
+
+/** Médico cria a conta de um paciente (ex.: idoso, sem celular). */
+export async function adminCreatePatient(data: {
+  full_name: string;
+  cpf?: string | null;
+  birth_date?: string | null;
+  phone?: string | null;
+  email?: string | null;
+}) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  if (!admin) {
+    return {
+      ok: false as const,
+      error:
+        "Cadastro indisponível: defina SUPABASE_SERVICE_ROLE_KEY nas variáveis de ambiente.",
+    };
+  }
+
+  const email =
+    data.email?.trim() ||
+    `paciente.${Date.now()}.${Math.random().toString(36).slice(2, 7)}@sem-email.fibro`;
+
+  const { data: created, error } = await admin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    password: crypto.randomUUID(),
+    user_metadata: { full_name: data.full_name },
+  });
+  if (error) return { ok: false as const, error: error.message };
+  const uid = created.user!.id;
+
+  await admin.from("profiles").upsert(
+    {
+      id: uid,
+      full_name: data.full_name,
+      cpf: data.cpf || null,
+      birth_date: data.birth_date || null,
+      phone: data.phone || null,
+      email,
+    },
+    { onConflict: "id" }
+  );
+
+  revalidatePath("/admin");
+  return { ok: true as const, userId: uid };
+}
+
+/** Médico salva uma avaliação ACR 2016 em nome do paciente. */
+export async function adminSaveAssessment(userId: string, answers: FibroAnswers) {
+  const supabase = await requireAdmin();
+  const result = evaluate(answers);
+  const { error } = await supabase.from("assessments").insert({
+    user_id: userId,
+    answers,
+    wpi: result.wpi,
+    sss: result.sss,
+    regions_with_pain: result.regionsWithPain,
+    severity_score: fibromyalgiaSeverityScore(result),
+    meets_criteria: result.meetsCriteria,
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/admin/${userId}`);
+  return { ok: true as const, result };
+}
+
+async function adminSaveResponse(
+  userId: string,
+  key: string,
+  answers: Record<string, number>,
+  score: number,
+  summary: Record<string, unknown>
+) {
+  const supabase = await requireAdmin();
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: userId,
+    questionnaire_key: key,
+    answers,
+    score,
+    summary,
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/admin/${userId}`);
+  return { ok: true as const };
+}
+
+export async function adminSaveFiqr(
+  userId: string,
+  answers: Record<string, number>
+) {
+  const r = computeFiqr(answers);
+  return adminSaveResponse(userId, "fiqr", answers, r.total, {
+    function: r.functionScore,
+    overall: r.overallScore,
+    symptoms: r.symptomsScore,
+    category: r.category.label,
+  });
+}
+
+export async function adminSaveCsi(
+  userId: string,
+  answers: Record<string, number>
+) {
+  const r = computeCsi(answers);
+  return adminSaveResponse(userId, "csi", answers, r.total, {
+    category: r.category.label,
+  });
+}
+
+export async function adminSavePcs(
+  userId: string,
+  answers: Record<string, number>
+) {
+  const r = computePcs(answers);
+  return adminSaveResponse(userId, "pcs", answers, r.total, {
+    rumination: r.rumination,
+    magnification: r.magnification,
+    helplessness: r.helplessness,
+    category: r.category.label,
+    clinical: r.clinical,
+  });
+}
+
 /**
  * Médico exclui um paciente por completo (conta + dados).
  * Usa a SERVICE ROLE KEY para remover a conta em auth.users; as tabelas
