@@ -81,16 +81,16 @@ export default function LoginPage() {
         <Image
           src="/logo.png"
           alt={CLINIC_NAME}
-          width={280}
-          height={78}
+          width={460}
+          height={128}
           priority
-          className="mx-auto mb-7 h-auto w-64 max-w-full"
+          className="mx-auto mb-7 h-auto w-full max-w-[360px] sm:max-w-[420px]"
         />
         <h1 className="font-display text-2xl font-semibold text-navy-800">
           {mode === "signin" ? "Bem-vindo(a) de volta" : "Criar conta"}
         </h1>
         <p className="mt-1 text-sm text-navy-500">
-          Acesse para responder o questionário e ver seu histórico.
+          Acesse para continuar o seu acompanhamento.
         </p>
       </div>
 
