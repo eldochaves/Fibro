@@ -206,7 +206,7 @@ export default async function AdminPage() {
             tone={pendingCount > 0 ? "amber" : "muted"}
           />
           <Stat label="Respostas (7 dias)" value={last7} />
-          <Stat label="Avaliações" value={assessmentList.length} />
+          <Stat label="Respostas (total)" value={events.length} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
