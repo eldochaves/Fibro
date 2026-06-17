@@ -8,7 +8,7 @@ import {
   RESPONSE_QUESTIONNAIRES,
   QUESTIONNAIRE_BY_KEY,
 } from "@/lib/questionnaires";
-import { normalizeFrequency, nextAvailable } from "@/lib/availability";
+import { normalizeFrequency, isPending } from "@/lib/availability";
 import { AdminPatientsList, type PatientSummary } from "./AdminPatientsList";
 
 export const dynamic = "force-dynamic";
@@ -122,8 +122,7 @@ export default async function AdminPage() {
       for (const key of p.questionnaires ?? []) {
         if (!QUESTIONNAIRE_BY_KEY[key]) continue;
         const freq = normalizeFrequency(freqMap[key]);
-        if (freq === "always") continue;
-        if (nextAvailable(freq, lastDate(p.id, key)) === null) {
+        if (isPending(freq, lastDate(p.id, key))) {
           pending = true;
           break;
         }

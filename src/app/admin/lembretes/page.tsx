@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { getContext } from "@/lib/session";
 import { SITE_URL } from "@/lib/config";
 import { QUESTIONNAIRE_BY_KEY } from "@/lib/questionnaires";
-import { normalizeFrequency, nextAvailable } from "@/lib/availability";
+import { normalizeFrequency, isPending } from "@/lib/availability";
 import { LembretesList, type ReminderItem } from "./LembretesList";
 
 export const dynamic = "force-dynamic";
@@ -77,9 +77,8 @@ export default async function LembretesPage() {
       const def = QUESTIONNAIRE_BY_KEY[key];
       if (!def) continue;
       const freq = normalizeFrequency(freqMap[key]);
-      if (freq === "always") continue; // só questionários programados
       const lastIso = last.get(`${p.id}|${key}`) ?? null;
-      if (nextAvailable(freq, lastIso) !== null) continue; // ainda não disponível
+      if (!isPending(freq, lastIso)) continue;
       items.push({
         userId: p.id,
         name: p.full_name,
@@ -111,8 +110,9 @@ export default async function LembretesPage() {
           Para responder agora
         </h1>
         <p className="mb-6 mt-1 text-sm text-navy-500">
-          Pacientes cujo questionário programado (anual, a cada 4 meses ou único)
-          está disponível. Envie o lembrete com um toque.
+          Pacientes com questionário em aberto: ainda não respondido (inclui
+          &quot;apenas uma vez&quot;) ou recorrente que reabriu. Envie o lembrete
+          com um toque.
         </p>
         <LembretesList items={items} siteUrl={SITE_URL} />
       </main>

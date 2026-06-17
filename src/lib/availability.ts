@@ -48,3 +48,19 @@ export function isAvailableNow(
 ): boolean {
   return nextAvailable(freq, lastISO) === null;
 }
+
+/**
+ * Pendência ("questionário em aberto"): há algo para o paciente responder.
+ *  - nunca respondido → sempre pendente (inclui "apenas uma vez" e "sempre")
+ *  - recorrente (anual / a cada 4 meses) que reabriu → pendente
+ *  - "apenas uma vez" ou "sempre" já respondido → não pendente
+ */
+export function isPending(
+  freq: Frequency,
+  lastISO: string | null | undefined
+): boolean {
+  if (!lastISO) return true;
+  if (freq === "yearly" || freq === "quarterly4")
+    return nextAvailable(freq, lastISO) === null;
+  return false;
+}
