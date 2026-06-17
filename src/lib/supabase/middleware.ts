@@ -37,7 +37,8 @@ export async function updateSession(request: NextRequest) {
   const isPublic =
     path === "/" ||
     path.startsWith("/login") ||
-    path.startsWith("/auth");
+    path.startsWith("/auth") ||
+    path.startsWith("/c/"); // links de convite tratam o login internamente
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();

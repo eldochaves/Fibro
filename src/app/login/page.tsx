@@ -20,13 +20,22 @@ export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Destino após login (ex.: link de convite /c/<questionário>)
+  function nextTarget(): string {
+    if (typeof window === "undefined") return "/inicio";
+    const n = new URLSearchParams(window.location.search).get("next");
+    return n && n.startsWith("/") ? n : "/inicio";
+  }
+
   async function handleGoogle() {
     setError(null);
+    const next = nextTarget();
+    const callback =
+      `${window.location.origin}/auth/callback` +
+      (next !== "/inicio" ? `?next=${encodeURIComponent(next)}` : "");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: callback },
     });
     if (error) setError(error.message);
   }
@@ -51,7 +60,8 @@ export default function LoginPage() {
         // Se a confirmação de email estiver desativada no Supabase, já vem
         // uma sessão e o paciente entra direto.
         if (data.session) {
-          router.push("/perfil");
+          const n = nextTarget();
+          router.push(n !== "/inicio" ? n : "/perfil");
           router.refresh();
           return;
         }
@@ -65,7 +75,7 @@ export default function LoginPage() {
           password,
         });
         if (error) throw error;
-        router.push("/inicio");
+        router.push(nextTarget());
         router.refresh();
       }
     } catch (err) {
