@@ -12,6 +12,7 @@ interface QrRow {
   id: string;
   created_at: string;
   score: number | null;
+  by_doctor: boolean | null;
   summary: { category?: string } | null;
 }
 
@@ -23,7 +24,7 @@ export default async function CsiPage() {
 
   const { data } = await supabase
     .from("questionnaire_responses")
-    .select("id, created_at, score, summary")
+    .select("id, created_at, score, summary, by_doctor")
     .eq("questionnaire_key", "csi")
     .order("created_at", { ascending: false });
   const history = (data ?? []) as QrRow[];
@@ -74,6 +75,9 @@ export default async function CsiPage() {
                 <li key={h.id} className="card flex items-center justify-between">
                   <div className="text-sm font-semibold text-navy-800">
                     {formatDate(h.created_at)}
+                    {h.by_doctor && (
+                      <span className="ml-2 rounded-full bg-navy-100 px-2 py-0.5 text-[11px] font-medium text-navy-600">👨‍⚕️ pelo médico</span>
+                    )}
                     {h.summary?.category && (
                       <span className="ml-2 font-normal text-navy-400">
                         {h.summary.category}

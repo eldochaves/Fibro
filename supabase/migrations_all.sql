@@ -188,3 +188,11 @@ create policy "qr_insert_admin"
 -- ---------------------------------------------------------------------
 alter table public.profiles
   add column if not exists questionnaire_requests jsonb not null default '{}';
+
+-- ---------------------------------------------------------------------
+-- 011 — Marca respostas preenchidas pelo médico
+-- ---------------------------------------------------------------------
+alter table public.assessments
+  add column if not exists by_doctor boolean not null default false;
+alter table public.questionnaire_responses
+  add column if not exists by_doctor boolean not null default false;

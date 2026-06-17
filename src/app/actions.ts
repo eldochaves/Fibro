@@ -290,6 +290,7 @@ export async function adminSaveAssessment(userId: string, answers: FibroAnswers)
     regions_with_pain: result.regionsWithPain,
     severity_score: fibromyalgiaSeverityScore(result),
     meets_criteria: result.meetsCriteria,
+    by_doctor: true,
   });
   if (error) return { ok: false as const, error: error.message };
   revalidatePath(`/admin/${userId}`);
@@ -310,6 +311,7 @@ async function adminSaveResponse(
     answers,
     score,
     summary,
+    by_doctor: true,
   });
   if (error) return { ok: false as const, error: error.message };
   revalidatePath(`/admin/${userId}`);

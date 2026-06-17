@@ -44,6 +44,7 @@ interface QrRow {
   created_at: string;
   score: number | null;
   summary: Record<string, unknown> | null;
+  by_doctor: boolean | null;
 }
 
 function summaryLine(key: string, s: Record<string, unknown> | null): string {
@@ -97,7 +98,7 @@ export default async function PatientDetailPage({
       .order("created_at", { ascending: false }),
     supabase
       .from("questionnaire_responses")
-      .select("id, questionnaire_key, created_at, score, summary")
+      .select("id, questionnaire_key, created_at, score, summary, by_doctor")
       .eq("user_id", userId)
       .order("created_at", { ascending: false }),
   ]);
@@ -287,9 +288,10 @@ export default async function PatientDetailPage({
                     const answers = a.answers as FibroAnswers;
                     return (
                       <details key={a.id} className="card" open={a === list[0]}>
-                        <summary className="flex cursor-pointer items-center justify-between">
-                          <span className="text-sm font-semibold text-navy-800">
+                        <summary className="flex cursor-pointer items-center justify-between gap-2">
+                          <span className="flex items-center gap-2 text-sm font-semibold text-navy-800">
                             {formatDateTime(a.created_at)}
+                            {a.by_doctor && <ByDoctorBadge />}
                           </span>
                           <span
                             className={`rounded-full px-3 py-1 text-xs font-medium ${
@@ -405,8 +407,9 @@ export default async function PatientDetailPage({
                           className="card flex items-center justify-between"
                         >
                           <div>
-                            <div className="text-sm font-semibold text-navy-800">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-navy-800">
                               {formatDateTime(r.created_at)}
+                              {r.by_doctor && <ByDoctorBadge />}
                             </div>
                             {line && (
                               <div className="mt-1 text-xs text-navy-400">
@@ -476,6 +479,14 @@ export default async function PatientDetailPage({
       </main>
       <Footer />
     </>
+  );
+}
+
+function ByDoctorBadge() {
+  return (
+    <span className="rounded-full bg-navy-100 px-2 py-0.5 text-[11px] font-medium text-navy-600">
+      👨‍⚕️ pelo médico
+    </span>
   );
 }
 

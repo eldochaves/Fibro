@@ -13,7 +13,7 @@ export default async function HistoricoPage() {
 
   const { data: assessments } = await supabase
     .from("assessments")
-    .select("id, created_at, wpi, sss, severity_score, meets_criteria")
+    .select("id, created_at, wpi, sss, severity_score, meets_criteria, by_doctor")
     .order("created_at", { ascending: false });
 
   const list = assessments ?? [];
@@ -69,8 +69,13 @@ export default async function HistoricoPage() {
               <li key={a.id} className="card">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-semibold text-navy-800">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-navy-800">
                       {formatDate(a.created_at)}
+                      {a.by_doctor && (
+                        <span className="rounded-full bg-navy-100 px-2 py-0.5 text-[11px] font-medium text-navy-600">
+                          👨‍⚕️ pelo médico
+                        </span>
+                      )}
                     </div>
                     <div className="mt-1 text-xs text-navy-400">
                       WPI {a.wpi}/19 · SSS {a.sss}/12 · Escore{" "}

@@ -38,7 +38,8 @@ create table if not exists public.assessments (
   sss smallint not null,
   regions_with_pain smallint not null,
   severity_score smallint not null,   -- FS = WPI + SSS
-  meets_criteria boolean not null
+  meets_criteria boolean not null,
+  by_doctor boolean not null default false
 );
 
 create index if not exists assessments_user_id_idx on public.assessments (user_id);
@@ -191,7 +192,8 @@ create table if not exists public.questionnaire_responses (
   created_at timestamptz not null default now(),
   answers jsonb not null,
   score numeric,
-  summary jsonb
+  summary jsonb,
+  by_doctor boolean not null default false
 );
 
 create index if not exists qr_user_idx on public.questionnaire_responses (user_id);

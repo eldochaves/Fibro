@@ -12,6 +12,7 @@ interface QrRow {
   id: string;
   created_at: string;
   score: number | null;
+  by_doctor: boolean | null;
   summary: { function?: number; overall?: number; symptoms?: number; category?: string } | null;
 }
 
@@ -23,7 +24,7 @@ export default async function FiqrPage() {
 
   const { data } = await supabase
     .from("questionnaire_responses")
-    .select("id, created_at, score, summary")
+    .select("id, created_at, score, summary, by_doctor")
     .eq("questionnaire_key", "fiqr")
     .order("created_at", { ascending: false });
   const history = (data ?? []) as QrRow[];
@@ -79,6 +80,9 @@ export default async function FiqrPage() {
                   <div>
                     <div className="text-sm font-semibold text-navy-800">
                       {formatDate(h.created_at)}
+                    {h.by_doctor && (
+                      <span className="ml-2 rounded-full bg-navy-100 px-2 py-0.5 text-[11px] font-medium text-navy-600">👨‍⚕️ pelo médico</span>
+                    )}
                     </div>
                     {h.summary && (
                       <div className="mt-1 text-xs text-navy-400">
