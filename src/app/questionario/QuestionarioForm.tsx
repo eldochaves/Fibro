@@ -127,10 +127,14 @@ export function QuestionarioForm() {
             </p>
           </div>
 
-          {/* Boneco de referência (acende conforme a seleção) */}
-          <div className="card sticky top-16 z-[1]">
-            <BodyMap selected={painAreas} onToggle={toggleArea} />
-            <p className="mt-2 text-center text-sm text-navy-400">
+          {/* Boneco de referência compacto (acende conforme a seleção) */}
+          <div className="sticky top-[68px] z-[1] flex items-center gap-3 rounded-2xl border border-navy-100 bg-white/95 p-2.5 shadow-soft backdrop-blur">
+            <div className="shrink-0">
+              <BodyMap selected={painAreas} onToggle={toggleArea} compact />
+            </div>
+            <p className="text-sm text-navy-500">
+              Marque as regiões na lista abaixo — elas acendem aqui ao lado.
+              <br />
               Selecionadas:{" "}
               <strong className="text-teal-700">{painAreas.size}</strong> de 19
             </p>

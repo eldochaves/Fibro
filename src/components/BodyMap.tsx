@@ -96,19 +96,24 @@ function Figure({
   regions,
   selected,
   onToggle,
+  compact = false,
 }: {
   title: string;
   decor: Shape[];
   regions: RegionDef[];
   selected: Set<string>;
   onToggle: (id: string) => void;
+  compact?: boolean;
 }) {
   return (
     <div className="flex-1">
-      <p className="mb-1 text-center text-xs font-medium text-navy-400">{title}</p>
+      <p className="mb-0.5 text-center text-[11px] font-medium text-navy-400">
+        {title}
+      </p>
       <svg
         viewBox="0 0 220 540"
-        className="mx-auto block h-auto w-full max-w-[230px] select-none"
+        className="mx-auto block h-auto w-full select-none"
+        style={{ maxWidth: compact ? 96 : 230 }}
       >
         {decor.map((s, i) => (
           <ShapeEl key={i} shape={s} fill={SKIN} stroke={SKIN_D} />
@@ -149,18 +154,21 @@ function Figure({
 export function BodyMap({
   selected,
   onToggle,
+  compact = false,
 }: {
   selected: Set<string>;
   onToggle: (id: string) => void;
+  compact?: boolean;
 }) {
   return (
-    <div className="flex gap-2">
+    <div className="flex justify-center gap-3">
       <Figure
         title="Frente"
         decor={FRONT_DECOR}
         regions={FRONT_REGIONS}
         selected={selected}
         onToggle={onToggle}
+        compact={compact}
       />
       <Figure
         title="Costas"
@@ -168,6 +176,7 @@ export function BodyMap({
         regions={BACK_REGIONS}
         selected={selected}
         onToggle={onToggle}
+        compact={compact}
       />
     </div>
   );
