@@ -49,11 +49,11 @@ export default async function HomePage() {
             Que bom ter você aqui
           </h1>
           <p className="mt-3 text-navy-500">
-            Este é o espaço dos pacientes do <strong>Dr. Eldo Chaves</strong>.
-            Aqui você responde questionários e registra como está se sentindo,
-            no seu tempo e pelo celular — assim cuidamos de você mais de perto
-            entre as consultas e deixamos o seu tratamento ainda mais
-            personalizado.
+            Este é o seu espaço de acompanhamento com o{" "}
+            <strong>Dr. Eldo Chaves</strong>. Aqui você responde questionários e
+            registra como está se sentindo, no seu tempo e pelo celular — assim
+            cuidamos de você mais de perto entre as consultas e deixamos o seu
+            tratamento ainda mais personalizado.
           </p>
 
           <Link href="/login" className="btn-primary mt-6 w-full">
