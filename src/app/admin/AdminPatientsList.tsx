@@ -19,25 +19,48 @@ export interface PatientSummary {
   avatarUrl: string | null;
   diseases: string[];
   indices: PatientIndex[];
+  pending: boolean;
   latestDate: string | null;
 }
 
 export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) {
   const [query, setQuery] = useState("");
+  const [disease, setDisease] = useState("");
+  const [onlyPending, setOnlyPending] = useState(false);
+  const [sort, setSort] = useState<"atividade" | "nome">("atividade");
+
+  const diseaseOptions = useMemo(() => {
+    const set = new Set<string>();
+    patients.forEach((p) => p.diseases.forEach((d) => set.add(d)));
+    return Array.from(set);
+  }, [patients]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return patients;
-    return patients.filter(
-      (p) =>
-        (p.fullName ?? "").toLowerCase().includes(q) ||
-        (p.email ?? "").toLowerCase().includes(q)
-    );
-  }, [patients, query]);
+    let arr = patients.filter((p) => {
+      if (q) {
+        const hit =
+          (p.fullName ?? "").toLowerCase().includes(q) ||
+          (p.email ?? "").toLowerCase().includes(q);
+        if (!hit) return false;
+      }
+      if (disease && !p.diseases.includes(disease)) return false;
+      if (onlyPending && !p.pending) return false;
+      return true;
+    });
+    arr = [...arr].sort((a, b) => {
+      if (sort === "nome")
+        return (a.fullName ?? "").localeCompare(b.fullName ?? "");
+      const ta = a.latestDate ? Date.parse(a.latestDate) : 0;
+      const tb = b.latestDate ? Date.parse(b.latestDate) : 0;
+      return tb - ta;
+    });
+    return arr;
+  }, [patients, query, disease, onlyPending, sort]);
 
   return (
     <>
-      <div className="mb-4">
+      <div className="mb-4 space-y-2">
         <input
           type="search"
           className="input"
@@ -46,6 +69,42 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Buscar paciente"
         />
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            className="rounded-lg border border-navy-200 bg-white px-2 py-1.5 text-sm text-navy-700 outline-none focus:border-teal-400"
+            value={disease}
+            onChange={(e) => setDisease(e.target.value)}
+            aria-label="Filtrar por doença"
+          >
+            <option value="">Todas as doenças</option>
+            {diseaseOptions.map((d) => (
+              <option key={d} value={d}>
+                {DISEASE_LABEL[d] ?? d}
+              </option>
+            ))}
+          </select>
+          <select
+            className="rounded-lg border border-navy-200 bg-white px-2 py-1.5 text-sm text-navy-700 outline-none focus:border-teal-400"
+            value={sort}
+            onChange={(e) => setSort(e.target.value as "atividade" | "nome")}
+            aria-label="Ordenar"
+          >
+            <option value="atividade">Mais recentes</option>
+            <option value="nome">Nome (A–Z)</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => setOnlyPending((v) => !v)}
+            aria-pressed={onlyPending}
+            className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+              onlyPending
+                ? "border-amber-300 bg-amber-50 text-amber-800"
+                : "border-navy-200 bg-white text-navy-600 hover:border-navy-300"
+            }`}
+          >
+            🔔 Só pendências
+          </button>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
@@ -64,8 +123,18 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
               >
                 <Avatar url={p.avatarUrl} name={p.fullName} size={44} />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold text-navy-800">
-                    {p.fullName || "(sem nome)"}
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm font-semibold text-navy-800">
+                      {p.fullName || "(sem nome)"}
+                    </span>
+                    {p.pending && (
+                      <span
+                        className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800"
+                        title="Questionário programado pendente"
+                      >
+                        🔔 pendência
+                      </span>
+                    )}
                   </div>
                   <div className="truncate text-xs text-navy-400">
                     {p.email}

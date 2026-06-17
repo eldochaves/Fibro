@@ -12,6 +12,8 @@ import { PainDiaryToggle } from "./PainDiaryToggle";
 import { PatientCareEditor } from "./PatientCareEditor";
 import { PainEpisodeList, type PainEpisode } from "@/components/PainEpisodeList";
 import { Avatar } from "@/components/Avatar";
+import { Tabs } from "@/components/Tabs";
+import { ClinicalSummary, type SummaryMetric } from "@/components/ClinicalSummary";
 import { formatCPF, formatPhone } from "@/lib/masks";
 import {
   DISEASE_LABEL,
@@ -105,10 +107,32 @@ export default async function PatientDetailPage({
     qrByKey.get(r.questionnaire_key)!.push(r);
   }
 
-  // Pontos do gráfico em ordem cronológica crescente
   const chartPoints: ChartPoint[] = [...list]
     .reverse()
     .map((a) => ({ date: a.created_at, score: a.severity_score }));
+
+  // Resumo clínico (últimos escores + tendência)
+  const summary: SummaryMetric[] = [];
+  if (list[0]) {
+    summary.push({
+      label: "FS",
+      value: list[0].severity_score,
+      max: 31,
+      prev: list[1]?.severity_score ?? null,
+      highlight: list[0].meets_criteria,
+    });
+  }
+  for (const def of RESPONSE_QUESTIONNAIRES) {
+    const rows = qrByKey.get(def.key) ?? [];
+    if (rows[0]) {
+      summary.push({
+        label: def.indexLabel,
+        value: Number(rows[0].score ?? 0),
+        max: def.maxScore,
+        prev: rows[1] ? Number(rows[1].score ?? 0) : null,
+      });
+    }
+  }
 
   return (
     <>
@@ -121,7 +145,8 @@ export default async function PatientDetailPage({
           ← Voltar para pacientes
         </Link>
 
-        <div className="card mb-6">
+        {/* Cabeçalho do paciente */}
+        <div className="card mb-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               <Avatar url={profile.avatar_url} name={profile.full_name} size={56} />
@@ -150,226 +175,264 @@ export default async function PatientDetailPage({
               ))}
             </div>
           )}
-          <div className="mt-4">
-            <AdminPatientEditor
-              profile={{
-                id: profile.id,
-                full_name: profile.full_name,
-                cpf: profile.cpf,
-                birth_date: profile.birth_date,
-                phone: profile.phone,
-              }}
-            />
-          </div>
         </div>
 
-        <div className="mb-6">
-          <PatientCareEditor
-            userId={profile.id}
-            initialDiseases={(profile.diseases as string[]) ?? []}
-            initialQuestionnaires={(profile.questionnaires as string[]) ?? []}
-            initialFreq={
-              (profile.questionnaire_freq as Record<string, string>) ?? {}
-            }
-          />
-        </div>
-
-        <div className="card mb-6 print:hidden">
-          <h2 className="font-display text-lg font-semibold text-navy-800">
-            Responder pelo paciente
-          </h2>
-          <p className="mt-1 text-sm text-navy-500">
-            Preencha um questionário em nome do paciente (ex.: idoso, sem
-            celular). A resposta é salva na conta dele.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {QUESTIONNAIRES.map((q) => (
-              <Link
-                key={q.key}
-                href={`/admin/${profile.id}/responder/${q.key}`}
-                className="btn-outline px-3 py-2 text-sm"
-              >
-                {q.icon} {q.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <PainDiaryToggle
-            userId={profile.id}
-            initialEnabled={profile.pain_diary_enabled === true}
-          />
-        </div>
-
-        {chartPoints.length >= 2 && (
-          <div className="card mb-6">
-            <h2 className="mb-2 text-sm font-semibold text-navy-700">
-              Evolução
-            </h2>
-            <SeverityChart points={chartPoints} />
+        {/* Resumo clínico */}
+        {summary.length > 0 && (
+          <div className="mb-6">
+            <ClinicalSummary metrics={summary} />
           </div>
         )}
 
-        <h2 className="mb-3 text-sm font-semibold text-navy-700">
-          Avaliações ({list.length})
-        </h2>
+        <Tabs tabs={["Acompanhamento", "Respostas", "Diário", "Dados"]}>
+          {/* ===== ACOMPANHAMENTO ===== */}
+          <div className="space-y-6">
+            <PatientCareEditor
+              userId={profile.id}
+              initialDiseases={(profile.diseases as string[]) ?? []}
+              initialQuestionnaires={(profile.questionnaires as string[]) ?? []}
+              initialFreq={
+                (profile.questionnaire_freq as Record<string, string>) ?? {}
+              }
+            />
 
-        {list.length === 0 ? (
-          <div className="card text-navy-500">
-            Este paciente ainda não preencheu nenhuma avaliação.
+            <div className="card print:hidden">
+              <h2 className="font-display text-lg font-semibold text-navy-800">
+                Responder pelo paciente
+              </h2>
+              <p className="mt-1 text-sm text-navy-500">
+                Preencha um questionário em nome do paciente (ex.: idoso, sem
+                celular). A resposta é salva na conta dele.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {QUESTIONNAIRES.map((q) => (
+                  <Link
+                    key={q.key}
+                    href={`/admin/${profile.id}/responder/${q.key}`}
+                    className="btn-outline px-3 py-2 text-sm"
+                  >
+                    {q.icon} {q.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <PainDiaryToggle
+              userId={profile.id}
+              initialEnabled={profile.pain_diary_enabled === true}
+            />
           </div>
-        ) : (
-          <div className="space-y-4">
-            {list.map((a) => {
-              const answers = a.answers as FibroAnswers;
+
+          {/* ===== RESPOSTAS ===== */}
+          <div className="space-y-8">
+            <div>
+              {chartPoints.length >= 2 && (
+                <div className="card mb-3">
+                  <h2 className="mb-2 text-sm font-semibold text-navy-700">
+                    Evolução — Fibromialgia (FS)
+                  </h2>
+                  <SeverityChart points={chartPoints} />
+                </div>
+              )}
+              <h2 className="mb-3 text-sm font-semibold text-navy-700">
+                Avaliação de Fibromialgia · ACR 2016 ({list.length})
+              </h2>
+              {list.length === 0 ? (
+                <div className="card text-navy-500">
+                  Nenhuma avaliação preenchida ainda.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {list.map((a) => {
+                    const answers = a.answers as FibroAnswers;
+                    return (
+                      <details key={a.id} className="card" open={a === list[0]}>
+                        <summary className="flex cursor-pointer items-center justify-between">
+                          <span className="text-sm font-semibold text-navy-800">
+                            {formatDateTime(a.created_at)}
+                          </span>
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-medium ${
+                              a.meets_criteria
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-navy-100 text-navy-500"
+                            }`}
+                          >
+                            {a.meets_criteria
+                              ? "Critérios atendidos"
+                              : "Não atendidos"}
+                          </span>
+                        </summary>
+
+                        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                          <Metric label="WPI" value={`${a.wpi}/19`} />
+                          <Metric label="SSS" value={`${a.sss}/12`} />
+                          <Metric
+                            label="Regiões"
+                            value={`${a.regions_with_pain}/5`}
+                          />
+                          <Metric
+                            label="FS (total)"
+                            value={`${a.severity_score}/31`}
+                          />
+                        </div>
+
+                        <div className="mt-4 space-y-3 text-sm">
+                          <div>
+                            <h4 className="font-semibold text-navy-700">
+                              Áreas com dor ({answers.painAreas.length})
+                            </h4>
+                            <p className="text-navy-500">
+                              {answers.painAreas.length === 0
+                                ? "Nenhuma"
+                                : answers.painAreas
+                                    .map((id) => AREA_LABEL.get(id) ?? id)
+                                    .join(", ")}
+                            </p>
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold text-navy-700">
+                              Severidade
+                            </h4>
+                            <ul className="text-navy-500">
+                              {SSS_SEVERITY_ITEMS.map((item) => (
+                                <li key={item.id}>
+                                  {item.label}: {answers.severity[item.id]}/3
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold text-navy-700">
+                              Outros sintomas
+                            </h4>
+                            <ul className="text-navy-500">
+                              {SSS_SYMPTOM_ITEMS.map((item) => (
+                                <li key={item.id}>
+                                  {item.label}:{" "}
+                                  {answers.symptoms[item.id] ? "Sim" : "Não"}
+                                </li>
+                              ))}
+                              <li>
+                                Sintomas há ≥ 3 meses:{" "}
+                                {answers.threeMonths ? "Sim" : "Não"}
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex justify-end border-t border-navy-100 pt-3">
+                          <DeleteAssessmentButton
+                            assessmentId={a.id}
+                            userId={userId}
+                          />
+                        </div>
+                      </details>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {RESPONSE_QUESTIONNAIRES.map((def) => {
+              const rows = qrByKey.get(def.key) ?? [];
+              if (rows.length === 0) return null;
+              const chart: ChartPoint[] = [...rows]
+                .reverse()
+                .map((r) => ({ date: r.created_at, score: Number(r.score ?? 0) }));
               return (
-                <details key={a.id} className="card" open={a === list[0]}>
-                  <summary className="flex cursor-pointer items-center justify-between">
-                    <span className="text-sm font-semibold text-navy-800">
-                      {formatDateTime(a.created_at)}
-                    </span>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        a.meets_criteria
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-navy-100 text-navy-500"
-                      }`}
-                    >
-                      {a.meets_criteria ? "Critérios atendidos" : "Não atendidos"}
-                    </span>
-                  </summary>
-
-                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <Metric label="WPI" value={`${a.wpi}/19`} />
-                    <Metric label="SSS" value={`${a.sss}/12`} />
-                    <Metric label="Regiões" value={`${a.regions_with_pain}/5`} />
-                    <Metric label="FS (total)" value={`${a.severity_score}/31`} />
-                  </div>
-
-                  <div className="mt-4 space-y-3 text-sm">
-                    <div>
-                      <h4 className="font-semibold text-navy-700">
-                        Áreas com dor ({answers.painAreas.length})
-                      </h4>
-                      <p className="text-navy-500">
-                        {answers.painAreas.length === 0
-                          ? "Nenhuma"
-                          : answers.painAreas
-                              .map((id) => AREA_LABEL.get(id) ?? id)
-                              .join(", ")}
-                      </p>
+                <div key={def.key}>
+                  {chart.length >= 2 && (
+                    <div className="card mb-3">
+                      <SeverityChart
+                        points={chart}
+                        maxScore={def.maxScore}
+                        caption={`Escore do ${def.indexLabel} (0–${def.maxScore}) ao longo do tempo.`}
+                      />
                     </div>
-
-                    <div>
-                      <h4 className="font-semibold text-navy-700">Severidade</h4>
-                      <ul className="text-navy-500">
-                        {SSS_SEVERITY_ITEMS.map((item) => (
-                          <li key={item.id}>
-                            {item.label}: {answers.severity[item.id]}/3
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold text-navy-700">
-                        Outros sintomas
-                      </h4>
-                      <ul className="text-navy-500">
-                        {SSS_SYMPTOM_ITEMS.map((item) => (
-                          <li key={item.id}>
-                            {item.label}:{" "}
-                            {answers.symptoms[item.id] ? "Sim" : "Não"}
-                          </li>
-                        ))}
-                        <li>
-                          Sintomas há ≥ 3 meses:{" "}
-                          {answers.threeMonths ? "Sim" : "Não"}
+                  )}
+                  <h2 className="mb-3 text-sm font-semibold text-navy-700">
+                    {def.name} ({rows.length})
+                  </h2>
+                  <ul className="space-y-3">
+                    {rows.map((r) => {
+                      const line = summaryLine(def.key, r.summary);
+                      return (
+                        <li
+                          key={r.id}
+                          className="card flex items-center justify-between"
+                        >
+                          <div>
+                            <div className="text-sm font-semibold text-navy-800">
+                              {formatDateTime(r.created_at)}
+                            </div>
+                            {line && (
+                              <div className="mt-1 text-xs text-navy-400">
+                                {line}
+                              </div>
+                            )}
+                          </div>
+                          <span className="chip-teal">
+                            {r.score}/{def.maxScore}
+                          </span>
                         </li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex justify-end border-t border-navy-100 pt-3">
-                    <DeleteAssessmentButton
-                      assessmentId={a.id}
-                      userId={userId}
-                    />
-                  </div>
-                </details>
+                      );
+                    })}
+                  </ul>
+                </div>
               );
             })}
           </div>
-        )}
 
-        {RESPONSE_QUESTIONNAIRES.map((def) => {
-          const rows = qrByKey.get(def.key) ?? [];
-          if (rows.length === 0) return null;
-          const chart: ChartPoint[] = [...rows]
-            .reverse()
-            .map((r) => ({ date: r.created_at, score: Number(r.score ?? 0) }));
-          return (
-            <div key={def.key} className="mt-8">
-              <h2 className="mb-3 text-sm font-semibold text-navy-700">
-                {def.name} ({rows.length})
-              </h2>
-              {chart.length >= 2 && (
-                <div className="card mb-3">
-                  <SeverityChart
-                    points={chart}
-                    maxScore={def.maxScore}
-                    caption={`Escore do ${def.indexLabel} (0–${def.maxScore}) ao longo do tempo.`}
-                  />
-                </div>
-              )}
-              <ul className="space-y-3">
-                {rows.map((r) => {
-                  const line = summaryLine(def.key, r.summary);
-                  return (
-                    <li
-                      key={r.id}
-                      className="card flex items-center justify-between"
-                    >
-                      <div>
-                        <div className="text-sm font-semibold text-navy-800">
-                          {formatDateTime(r.created_at)}
-                        </div>
-                        {line && (
-                          <div className="mt-1 text-xs text-navy-400">{line}</div>
-                        )}
-                      </div>
-                      <span className="chip-teal">
-                        {r.score}/{def.maxScore}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          );
-        })}
-
-        {profile.pain_diary_enabled && (
-          <div className="mt-8">
-            <h2 className="mb-3 text-sm font-semibold text-navy-700">
-              Diário de Dor ({painEpisodes.length})
-            </h2>
-            <PainEpisodeList episodes={painEpisodes as PainEpisode[]} />
+          {/* ===== DIÁRIO ===== */}
+          <div>
+            {profile.pain_diary_enabled ? (
+              <>
+                <h2 className="mb-3 text-sm font-semibold text-navy-700">
+                  Diário de Dor ({painEpisodes.length})
+                </h2>
+                <PainEpisodeList episodes={painEpisodes as PainEpisode[]} />
+              </>
+            ) : (
+              <div className="card text-center text-navy-500">
+                O Diário de Dor não está habilitado para este paciente. Habilite
+                na aba <strong>Acompanhamento</strong>.
+              </div>
+            )}
           </div>
-        )}
 
-        <div className="mt-10 rounded-2xl border border-red-100 bg-red-50/40 p-4 print:hidden">
-          <h2 className="text-sm font-semibold text-red-700">Zona de risco</h2>
-          <p className="mb-3 mt-1 text-xs text-navy-500">
-            Excluir o paciente remove a conta e todos os dados (avaliações e
-            diário). Não pode ser desfeito.
-          </p>
-          <DeleteUserButton
-            userId={profile.id}
-            name={profile.full_name || "(sem nome)"}
-          />
-        </div>
+          {/* ===== DADOS ===== */}
+          <div className="space-y-6">
+            <div className="card">
+              <h2 className="font-display text-lg font-semibold text-navy-800">
+                Dados do paciente
+              </h2>
+              <AdminPatientEditor
+                profile={{
+                  id: profile.id,
+                  full_name: profile.full_name,
+                  cpf: profile.cpf,
+                  birth_date: profile.birth_date,
+                  phone: profile.phone,
+                }}
+              />
+            </div>
+
+            <div className="rounded-2xl border border-red-100 bg-red-50/40 p-4 print:hidden">
+              <h2 className="text-sm font-semibold text-red-700">Zona de risco</h2>
+              <p className="mb-3 mt-1 text-xs text-navy-500">
+                Excluir o paciente remove a conta e todos os dados (avaliações e
+                diário). Não pode ser desfeito.
+              </p>
+              <DeleteUserButton
+                userId={profile.id}
+                name={profile.full_name || "(sem nome)"}
+              />
+            </div>
+          </div>
+        </Tabs>
       </main>
       <Footer />
     </>
