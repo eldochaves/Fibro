@@ -134,10 +134,15 @@ export default async function AdminPage() {
               Acompanhe as avaliações e o diário de dor dos seus pacientes.
             </p>
           </div>
-          <Link href="/admin/convite" className="btn-primary shrink-0">
-            <span className="hidden sm:inline">Convite / QR</span>
-            <span className="sm:hidden">QR</span>
-          </Link>
+          <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+            <Link href="/admin/lembretes" className="btn-outline">
+              🔔 Lembretes
+            </Link>
+            <Link href="/admin/convite" className="btn-primary">
+              <span className="hidden sm:inline">Convite / QR</span>
+              <span className="sm:hidden">Convite / QR</span>
+            </Link>
+          </div>
         </div>
 
         <div className="mb-6 mt-6 grid grid-cols-3 gap-3 sm:gap-4">
