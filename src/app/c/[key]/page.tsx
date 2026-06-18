@@ -48,8 +48,8 @@ export default async function ConvitePage({
   const complete = Boolean(
     profile?.full_name && profile?.cpf && profile?.birth_date
   );
-  // Cadastro incompleto → completa primeiro (questionário já fica liberado)
-  if (!complete) redirect("/perfil");
+  // Cadastro incompleto → completa primeiro, voltando ao questionário depois
+  if (!complete) redirect(`/perfil?next=${encodeURIComponent(def.path)}`);
 
   redirect(def.path);
 }

@@ -70,6 +70,11 @@ export function PerfilForm({
       return;
     }
 
+    const next =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("next")
+        : null;
+
     setSaving(true);
     const res = await updateProfile({
       full_name: fullName.trim(),
@@ -77,7 +82,7 @@ export function PerfilForm({
       birth_date: birthDate || null,
       phone: phone.replace(/\D/g, "") || null,
       avatar_url: avatarUrl,
-      redirectTo: "/inicio",
+      redirectTo: next && next.startsWith("/") ? next : "/inicio",
     });
     setSaving(false);
     if (res && !res.ok) {
