@@ -4,7 +4,10 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getContext } from "@/lib/session";
 import { PrintButton } from "@/components/PrintButton";
-import { SeverityChart, type ChartPoint } from "@/components/SeverityChart";
+import {
+  QuestionnaireResultCard,
+  type ResultRow,
+} from "@/components/QuestionnaireResultCard";
 import { AdminPatientEditor } from "./AdminPatientEditor";
 import { DeleteAssessmentButton } from "./DeleteAssessmentButton";
 import { DeleteUserButton } from "./DeleteUserButton";
@@ -17,8 +20,13 @@ import { ClinicalSummary, type SummaryMetric } from "@/components/ClinicalSummar
 import { formatCPF, formatPhone } from "@/lib/masks";
 import {
   DISEASE_LABEL,
+  DISEASES,
+  QUESTIONNAIRES,
   RESPONSE_QUESTIONNAIRES,
   QUESTIONNAIRE_BY_KEY,
+  REGION_LABEL,
+  REGION_ORDER,
+  type QuestionnaireDef,
 } from "@/lib/questionnaires";
 import {
   normalizeFrequency,
@@ -122,9 +130,64 @@ export default async function PatientDetailPage({
     qrByKey.get(r.questionnaire_key)!.push(r);
   }
 
-  const chartPoints: ChartPoint[] = [...list]
-    .reverse()
-    .map((a) => ({ date: a.created_at, score: a.severity_score }));
+  // Monta as linhas de resultado de cada questionário (ACR vem de assessments;
+  // os demais de questionnaire_responses).
+  function buildRows(def: QuestionnaireDef): ResultRow[] {
+    if (def.key === "acr2016") {
+      return list.map((a) => ({
+        id: a.id,
+        date: a.created_at,
+        score: a.severity_score,
+        scoreText: `${a.severity_score}/31`,
+        by_doctor: a.by_doctor === true,
+        line: `WPI ${a.wpi}/19 · SSS ${a.sss}/12 · Regiões com dor ${a.regions_with_pain}/5`,
+        met: a.meets_criteria === true,
+      }));
+    }
+    const rows = qrByKey.get(def.key) ?? [];
+    const isCrit = def.kind === "criterio";
+    return rows.map((r) => {
+      const s = r.summary as Record<string, unknown> | null;
+      const met = typeof s?.met === "boolean" ? (s.met as boolean) : null;
+      return {
+        id: r.id,
+        date: r.created_at,
+        score: Number(r.score ?? 0),
+        scoreText: isCrit
+          ? `${r.score}/${def.maxScore} itens`
+          : `${r.score}/${def.maxScore}`,
+        by_doctor: r.by_doctor === true,
+        line: summaryLine(def.key, r.summary),
+        met,
+      };
+    });
+  }
+
+  const rowsByKey = new Map<string, ResultRow[]>();
+  const dataDefs: QuestionnaireDef[] = [];
+  for (const def of QUESTIONNAIRES) {
+    const rows = buildRows(def);
+    if (rows.length > 0) {
+      rowsByKey.set(def.key, rows);
+      dataDefs.push(def);
+    }
+  }
+
+  // Agrupa os questionários com respostas por doença (na ordem: doenças atuais
+  // do paciente primeiro) e, dentro da doença, por região anatômica.
+  const patientDiseases = (profile.diseases as string[]) ?? [];
+  const diseaseOrder = [
+    ...DISEASES.filter((d) => patientDiseases.includes(d.key)),
+    ...DISEASES.filter((d) => !patientDiseases.includes(d.key)),
+  ];
+  const diseaseGroups = diseaseOrder
+    .map((d) => ({
+      key: d.key,
+      label: DISEASE_LABEL[d.key],
+      defs: dataDefs.filter((q) => q.diseases.includes(d.key)),
+    }))
+    .filter((g) => g.defs.length > 0);
+  const genericDefs = dataDefs.filter((q) => q.diseases.length === 0);
 
   // Resumo clínico (últimos escores + tendência)
   const summary: SummaryMetric[] = [];
@@ -173,6 +236,112 @@ export default async function PatientDetailPage({
         hasRequest: hasOpenRequest(requested, last),
       };
     });
+
+  // Avaliações antes de critérios; e separação por região dentro da doença.
+  const ordKind = (a: QuestionnaireDef, b: QuestionnaireDef) =>
+    (a.kind === "criterio" ? 1 : 0) - (b.kind === "criterio" ? 1 : 0);
+
+  function regionSplit(defs: QuestionnaireDef[]) {
+    const noRegion = [...defs].filter((q) => !q.region).sort(ordKind);
+    const groups = REGION_ORDER.map((r) => ({
+      label: REGION_LABEL[r],
+      items: defs.filter((q) => q.region === r).sort(ordKind),
+    })).filter((g) => g.items.length > 0);
+    return { noRegion, groups };
+  }
+
+  function renderCards(defs: QuestionnaireDef[]) {
+    return defs.map((def) => (
+      <QuestionnaireResultCard
+        key={def.key}
+        def={def}
+        rows={rowsByKey.get(def.key)!}
+      />
+    ));
+  }
+
+  // Detalhamento granular do ACR 2016 (áreas, severidade, sintomas) — fica
+  // dentro do grupo da Fibromialgia.
+  const acrDetail = (
+    <details className="card mt-4">
+      <summary className="cursor-pointer text-sm font-semibold text-navy-700">
+        Respostas detalhadas — ACR 2016 ({list.length})
+      </summary>
+      <div className="mt-4 space-y-4">
+        {list.map((a) => {
+          const answers = a.answers as FibroAnswers;
+          return (
+            <div key={a.id} className="rounded-xl border border-navy-100 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2 text-sm font-semibold text-navy-800">
+                  {formatDateTime(a.created_at)}
+                  {a.by_doctor && <ByDoctorBadge />}
+                </span>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    a.meets_criteria
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-navy-100 text-navy-500"
+                  }`}
+                >
+                  {a.meets_criteria ? "Critérios atendidos" : "Não atendidos"}
+                </span>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Metric label="WPI" value={`${a.wpi}/19`} />
+                <Metric label="SSS" value={`${a.sss}/12`} />
+                <Metric label="Regiões" value={`${a.regions_with_pain}/5`} />
+                <Metric label="FS (total)" value={`${a.severity_score}/31`} />
+              </div>
+
+              <div className="mt-3 space-y-3 text-sm">
+                <div>
+                  <h4 className="font-semibold text-navy-700">
+                    Áreas com dor ({answers.painAreas.length})
+                  </h4>
+                  <p className="text-navy-500">
+                    {answers.painAreas.length === 0
+                      ? "Nenhuma"
+                      : answers.painAreas
+                          .map((id) => AREA_LABEL.get(id) ?? id)
+                          .join(", ")}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-navy-700">Severidade</h4>
+                  <ul className="text-navy-500">
+                    {SSS_SEVERITY_ITEMS.map((item) => (
+                      <li key={item.id}>
+                        {item.label}: {answers.severity[item.id]}/3
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-navy-700">Outros sintomas</h4>
+                  <ul className="text-navy-500">
+                    {SSS_SYMPTOM_ITEMS.map((item) => (
+                      <li key={item.id}>
+                        {item.label}: {answers.symptoms[item.id] ? "Sim" : "Não"}
+                      </li>
+                    ))}
+                    <li>
+                      Sintomas há ≥ 3 meses: {answers.threeMonths ? "Sim" : "Não"}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-3 flex justify-end border-t border-navy-100 pt-3">
+                <DeleteAssessmentButton assessmentId={a.id} userId={userId} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </details>
+  );
 
   return (
     <>
@@ -255,174 +424,74 @@ export default async function PatientDetailPage({
 
           {/* ===== RESPOSTAS ===== */}
           <div className="space-y-8">
-            <div>
-              {chartPoints.length >= 1 && (
-                <div className="card mb-3">
-                  <h2 className="mb-2 text-sm font-semibold text-navy-700">
-                    Evolução — Fibromialgia (FS, 0–31)
-                  </h2>
-                  <SeverityChart points={chartPoints} />
-                </div>
-              )}
-              <h2 className="mb-3 text-sm font-semibold text-navy-700">
-                Avaliação de Fibromialgia · ACR 2016 ({list.length})
-              </h2>
-              {list.length === 0 ? (
-                <div className="card text-navy-500">
-                  Nenhuma avaliação preenchida ainda.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {list.map((a) => {
-                    const answers = a.answers as FibroAnswers;
-                    return (
-                      <details key={a.id} className="card" open={a === list[0]}>
-                        <summary className="flex cursor-pointer items-center justify-between gap-2">
-                          <span className="flex items-center gap-2 text-sm font-semibold text-navy-800">
-                            {formatDateTime(a.created_at)}
-                            {a.by_doctor && <ByDoctorBadge />}
-                          </span>
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-medium ${
-                              a.meets_criteria
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-navy-100 text-navy-500"
-                            }`}
-                          >
-                            {a.meets_criteria
-                              ? "Critérios atendidos"
-                              : "Não atendidos"}
-                          </span>
-                        </summary>
-
-                        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                          <Metric label="WPI" value={`${a.wpi}/19`} />
-                          <Metric label="SSS" value={`${a.sss}/12`} />
-                          <Metric
-                            label="Regiões"
-                            value={`${a.regions_with_pain}/5`}
-                          />
-                          <Metric
-                            label="FS (total)"
-                            value={`${a.severity_score}/31`}
-                          />
-                        </div>
-
-                        <div className="mt-4 space-y-3 text-sm">
-                          <div>
-                            <h4 className="font-semibold text-navy-700">
-                              Áreas com dor ({answers.painAreas.length})
-                            </h4>
-                            <p className="text-navy-500">
-                              {answers.painAreas.length === 0
-                                ? "Nenhuma"
-                                : answers.painAreas
-                                    .map((id) => AREA_LABEL.get(id) ?? id)
-                                    .join(", ")}
-                            </p>
-                          </div>
-
-                          <div>
-                            <h4 className="font-semibold text-navy-700">
-                              Severidade
-                            </h4>
-                            <ul className="text-navy-500">
-                              {SSS_SEVERITY_ITEMS.map((item) => (
-                                <li key={item.id}>
-                                  {item.label}: {answers.severity[item.id]}/3
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          <div>
-                            <h4 className="font-semibold text-navy-700">
-                              Outros sintomas
-                            </h4>
-                            <ul className="text-navy-500">
-                              {SSS_SYMPTOM_ITEMS.map((item) => (
-                                <li key={item.id}>
-                                  {item.label}:{" "}
-                                  {answers.symptoms[item.id] ? "Sim" : "Não"}
-                                </li>
-                              ))}
-                              <li>
-                                Sintomas há ≥ 3 meses:{" "}
-                                {answers.threeMonths ? "Sim" : "Não"}
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 flex justify-end border-t border-navy-100 pt-3">
-                          <DeleteAssessmentButton
-                            assessmentId={a.id}
-                            userId={userId}
-                          />
-                        </div>
-                      </details>
-                    );
-                  })}
-                </div>
-              )}
+            {/* Legenda didática */}
+            <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4">
+              <p className="text-sm font-semibold text-navy-700">
+                Como ler esta aba
+              </p>
+              <ul className="mt-1 space-y-0.5 text-xs text-navy-600">
+                <li>
+                  <span className="font-semibold text-green-600">verde</span> =
+                  melhorou em relação à vez anterior ·{" "}
+                  <span className="font-semibold text-red-600">vermelho</span> =
+                  piorou · <span className="text-navy-400">→ estável</span>.
+                </li>
+                <li>
+                  Cada cartão diz se, naquele instrumento,{" "}
+                  <strong>maior = melhor</strong> ou{" "}
+                  <strong>maior = pior</strong>.
+                </li>
+                <li>
+                  Critérios mostram se o paciente <strong>atende</strong> ou não
+                  à definição diagnóstica/classificatória.
+                </li>
+              </ul>
             </div>
 
-            {RESPONSE_QUESTIONNAIRES.map((def) => {
-              const rows = qrByKey.get(def.key) ?? [];
-              if (rows.length === 0) return null;
-              const chart: ChartPoint[] = [...rows]
-                .reverse()
-                .map((r) => ({ date: r.created_at, score: Number(r.score ?? 0) }));
-              return (
-                <div key={def.key}>
-                  {chart.length >= 1 && (
-                    <div className="card mb-3">
-                      <h2 className="mb-2 text-sm font-semibold text-navy-700">
-                        Evolução — {def.indexLabel} (0–{def.maxScore})
+            {diseaseGroups.length === 0 && genericDefs.length === 0 ? (
+              <div className="card text-navy-500">
+                Nenhuma resposta registrada ainda. Libere questionários na aba{" "}
+                <strong>Acompanhamento</strong>.
+              </div>
+            ) : (
+              <>
+                {diseaseGroups.map((group) => {
+                  const { noRegion, groups } = regionSplit(group.defs);
+                  return (
+                    <section key={group.key}>
+                      <h2 className="mb-3 border-l-4 border-teal-500 pl-2 font-display text-lg font-semibold text-navy-800">
+                        {group.label}
                       </h2>
-                      <SeverityChart
-                        points={chart}
-                        maxScore={def.maxScore}
-                        caption={
-                          def.higherIsBetter
-                            ? "Maior = melhor"
-                            : "Maior = pior"
-                        }
-                      />
-                    </div>
-                  )}
-                  <h2 className="mb-3 text-sm font-semibold text-navy-700">
-                    {def.name} ({rows.length})
-                  </h2>
-                  <ul className="space-y-3">
-                    {rows.map((r) => {
-                      const line = summaryLine(def.key, r.summary);
-                      return (
-                        <li
-                          key={r.id}
-                          className="card flex items-center justify-between"
-                        >
-                          <div>
-                            <div className="flex items-center gap-2 text-sm font-semibold text-navy-800">
-                              {formatDateTime(r.created_at)}
-                              {r.by_doctor && <ByDoctorBadge />}
+                      <div className="space-y-4">
+                        {renderCards(noRegion)}
+                        {groups.map((g) => (
+                          <div key={g.label}>
+                            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-400">
+                              {g.label}
                             </div>
-                            {line && (
-                              <div className="mt-1 text-xs text-navy-400">
-                                {line}
-                              </div>
-                            )}
+                            <div className="space-y-4">
+                              {renderCards(g.items)}
+                            </div>
                           </div>
-                          <span className="chip-teal">
-                            {r.score}/{def.maxScore}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              );
-            })}
+                        ))}
+                      </div>
+                      {group.key === "fibromialgia" &&
+                        list.length > 0 &&
+                        acrDetail}
+                    </section>
+                  );
+                })}
+
+                {genericDefs.length > 0 && (
+                  <section>
+                    <h2 className="mb-3 border-l-4 border-navy-300 pl-2 font-display text-lg font-semibold text-navy-800">
+                      Dor (geral)
+                    </h2>
+                    <div className="space-y-4">{renderCards(genericDefs)}</div>
+                  </section>
+                )}
+              </>
+            )}
           </div>
 
           {/* ===== DIÁRIO ===== */}
