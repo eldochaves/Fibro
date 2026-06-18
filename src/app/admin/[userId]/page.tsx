@@ -18,7 +18,6 @@ import { formatCPF, formatPhone } from "@/lib/masks";
 import {
   DISEASE_LABEL,
   RESPONSE_QUESTIONNAIRES,
-  QUESTIONNAIRES,
   QUESTIONNAIRE_BY_KEY,
 } from "@/lib/questionnaires";
 import {
@@ -230,27 +229,6 @@ export default async function PatientDetailPage({
 
             <div className="card print:hidden">
               <h2 className="font-display text-lg font-semibold text-navy-800">
-                Responder pelo paciente
-              </h2>
-              <p className="mt-1 text-sm text-navy-500">
-                Preencha um questionário em nome do paciente (ex.: idoso, sem
-                celular). A resposta é salva na conta dele.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {QUESTIONNAIRES.map((q) => (
-                  <Link
-                    key={q.key}
-                    href={`/admin/${profile.id}/responder/${q.key}`}
-                    className="btn-outline px-3 py-2 text-sm"
-                  >
-                    {q.icon} {q.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="card print:hidden">
-              <h2 className="font-display text-lg font-semibold text-navy-800">
                 Solicitar nova resposta
               </h2>
               <p className="mb-3 mt-1 text-sm text-navy-500">
@@ -269,10 +247,10 @@ export default async function PatientDetailPage({
           {/* ===== RESPOSTAS ===== */}
           <div className="space-y-8">
             <div>
-              {chartPoints.length >= 2 && (
+              {chartPoints.length >= 1 && (
                 <div className="card mb-3">
                   <h2 className="mb-2 text-sm font-semibold text-navy-700">
-                    Evolução — Fibromialgia (FS)
+                    Evolução — Fibromialgia (FS, 0–31)
                   </h2>
                   <SeverityChart points={chartPoints} />
                 </div>
@@ -388,13 +366,12 @@ export default async function PatientDetailPage({
                 .map((r) => ({ date: r.created_at, score: Number(r.score ?? 0) }));
               return (
                 <div key={def.key}>
-                  {chart.length >= 2 && (
+                  {chart.length >= 1 && (
                     <div className="card mb-3">
-                      <SeverityChart
-                        points={chart}
-                        maxScore={def.maxScore}
-                        caption={`Escore do ${def.indexLabel} (0–${def.maxScore}) ao longo do tempo.`}
-                      />
+                      <h2 className="mb-2 text-sm font-semibold text-navy-700">
+                        Evolução — {def.indexLabel} (0–{def.maxScore})
+                      </h2>
+                      <SeverityChart points={chart} maxScore={def.maxScore} />
                     </div>
                   )}
                   <h2 className="mb-3 text-sm font-semibold text-navy-700">

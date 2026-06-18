@@ -1,9 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { adminSetPatientCare } from "@/app/actions";
-import { DISEASES, QUESTIONNAIRES } from "@/lib/questionnaires";
+import {
+  DISEASES,
+  QUESTIONNAIRES,
+  QUESTIONNAIRE_BY_KEY,
+} from "@/lib/questionnaires";
 import {
   FREQUENCY_OPTIONS,
   normalizeFrequency,
@@ -39,6 +44,27 @@ export function PatientCareEditor({
   function toggle(list: string[], setList: (v: string[]) => void, key: string) {
     setSaved(false);
     setList(list.includes(key) ? list.filter((k) => k !== key) : [...list, key]);
+  }
+
+  // Ao desmarcar uma doença, desmarca os questionários ligados só a ela
+  function toggleDisease(key: string) {
+    setSaved(false);
+    setDiseases((prev) => {
+      const removing = prev.includes(key);
+      const next = removing
+        ? prev.filter((k) => k !== key)
+        : [...prev, key];
+      if (removing) {
+        setQuestionnaires((qs) =>
+          qs.filter((qk) => {
+            const def = QUESTIONNAIRE_BY_KEY[qk];
+            if (!def || def.diseases.length === 0) return true;
+            return def.diseases.some((d) => next.includes(d));
+          })
+        );
+      }
+      return next;
+    });
   }
 
   async function handleSave() {
@@ -78,7 +104,7 @@ export function PatientCareEditor({
               <button
                 key={d.key}
                 type="button"
-                onClick={() => toggle(diseases, setDiseases, d.key)}
+                onClick={() => toggleDisease(d.key)}
                 aria-pressed={active}
                 className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                   active
@@ -144,31 +170,39 @@ export function PatientCareEditor({
                 </button>
 
                 {active && (
-                  <div className="flex items-center gap-2 border-t border-teal-200 px-4 py-2.5">
-                    <label
-                      htmlFor={`freq-${q.key}`}
-                      className="text-xs font-medium text-navy-600"
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-teal-200 px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor={`freq-${q.key}`}
+                        className="text-xs font-medium text-navy-600"
+                      >
+                        Disponibilidade:
+                      </label>
+                      <select
+                        id={`freq-${q.key}`}
+                        value={freq[q.key]}
+                        onChange={(e) => {
+                          setSaved(false);
+                          setFreq((f) => ({
+                            ...f,
+                            [q.key]: e.target.value as Frequency,
+                          }));
+                        }}
+                        className="rounded-lg border border-navy-200 bg-white px-2 py-1 text-sm text-navy-800 outline-none focus:border-teal-400"
+                      >
+                        {FREQUENCY_OPTIONS.map((o) => (
+                          <option key={o.key} value={o.key}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <Link
+                      href={`/admin/${userId}/responder/${q.key}`}
+                      className="text-sm font-medium text-teal-700 hover:underline"
                     >
-                      Disponibilidade:
-                    </label>
-                    <select
-                      id={`freq-${q.key}`}
-                      value={freq[q.key]}
-                      onChange={(e) => {
-                        setSaved(false);
-                        setFreq((f) => ({
-                          ...f,
-                          [q.key]: e.target.value as Frequency,
-                        }));
-                      }}
-                      className="rounded-lg border border-navy-200 bg-white px-2 py-1 text-sm text-navy-800 outline-none focus:border-teal-400"
-                    >
-                      {FREQUENCY_OPTIONS.map((o) => (
-                        <option key={o.key} value={o.key}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
+                      ✍️ Responder pelo paciente
+                    </Link>
                   </div>
                 )}
               </div>
