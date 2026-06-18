@@ -20,6 +20,8 @@ import { computeEva } from "@/lib/eva";
 import { computeScored } from "@/lib/scored";
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { computeCriteria, CRITERIA_DEFS } from "@/lib/criteria";
+import { computeLikert } from "@/lib/likert";
+import { LIKERT_DEFS } from "@/lib/koos";
 
 /** Salva uma avaliação ACR 2016 para o usuário autenticado. */
 export async function saveAssessment(answers: FibroAnswers) {
@@ -764,6 +766,44 @@ export async function adminSaveScored(
   const r = computeScored(def, answers);
   return adminSaveResponse(userId, key, answers, r.total, {
     category: r.category,
+  });
+}
+
+/** Paciente salva um questionário Likert normalizado por subescalas (KOOS/HOOS). */
+export async function saveLikert(
+  key: string,
+  answers: Record<string, number>
+) {
+  const def = LIKERT_DEFS[key];
+  if (!def) return { ok: false as const, error: "Questionário inválido." };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const r = computeLikert(def, answers);
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: key,
+    answers,
+    score: r.score,
+    summary: { subscales: r.subscales },
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/q/${key}`);
+  return { ok: true as const, result: r };
+}
+
+export async function adminSaveLikert(
+  userId: string,
+  key: string,
+  answers: Record<string, number>
+) {
+  const def = LIKERT_DEFS[key];
+  if (!def) return { ok: false as const, error: "Questionário inválido." };
+  const r = computeLikert(def, answers);
+  return adminSaveResponse(userId, key, answers, r.score, {
+    subscales: r.subscales,
   });
 }
 

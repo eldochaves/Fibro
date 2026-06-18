@@ -13,6 +13,8 @@ import { ScoredChoiceForm } from "@/components/ScoredChoiceForm";
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { CriteriaForm } from "@/components/CriteriaForm";
 import { CRITERIA_DEFS } from "@/lib/criteria";
+import { LikertScaleForm } from "@/components/LikertScaleForm";
+import { LIKERT_DEFS } from "@/lib/koos";
 
 export const dynamic = "force-dynamic";
 
@@ -107,6 +109,14 @@ export default async function AdminResponderPage({
               {def.name}
             </h1>
             <CriteriaForm questionnaireKey={key} targetUserId={userId} />
+          </>
+        )}
+        {LIKERT_DEFS[key] && (
+          <>
+            <h1 className="mb-4 font-display text-2xl font-semibold text-navy-800">
+              {def.name}
+            </h1>
+            <LikertScaleForm questionnaireKey={key} targetUserId={userId} />
           </>
         )}
       </main>

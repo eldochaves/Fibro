@@ -45,6 +45,8 @@ export interface QuestionnaireDef {
   kind: "avaliacao" | "criterio";
   /** Para critérios: se é diagnóstico ou classificatório. */
   criterionType?: "diagnostico" | "classificatorio";
+  /** Quando true, MAIOR escore = MELHOR (ex.: KOOS/HOOS, 0–100). */
+  higherIsBetter?: boolean;
 }
 
 export const QUESTIONNAIRES: QuestionnaireDef[] = [
@@ -156,6 +158,50 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     storage: "responses",
     indexLabel: "EVA",
     maxScore: 10,
+    kind: "avaliacao",
+  },
+  {
+    key: "koos",
+    name: "Osteoartrite — KOOS (joelho)",
+    short: "Osteoartrite · KOOS joelho",
+    description:
+      "Sintomas, dor, função, esporte/lazer e qualidade de vida no joelho (5 subescalas, 0–100; maior = melhor).",
+    path: "/q/koos",
+    icon: "🦵",
+    diseases: ["osteoartrite"],
+    storage: "responses",
+    indexLabel: "KOOS",
+    maxScore: 100,
+    kind: "avaliacao",
+    higherIsBetter: true,
+  },
+  {
+    key: "hoos",
+    name: "Osteoartrite — HOOS (quadril)",
+    short: "Osteoartrite · HOOS quadril",
+    description:
+      "Sintomas, dor, função, esporte/lazer e qualidade de vida no quadril (5 subescalas, 0–100; maior = melhor).",
+    path: "/q/hoos",
+    icon: "🦴",
+    diseases: ["osteoartrite"],
+    storage: "responses",
+    indexLabel: "HOOS",
+    maxScore: 100,
+    kind: "avaliacao",
+    higherIsBetter: true,
+  },
+  {
+    key: "auscan",
+    name: "Osteoartrite — AUSCAN (mãos)",
+    short: "Osteoartrite · AUSCAN mãos",
+    description:
+      "Dor, rigidez e função das mãos na osteoartrite (0–60; maior = pior).",
+    path: "/q/auscan",
+    icon: "✋",
+    diseases: ["osteoartrite"],
+    storage: "responses",
+    indexLabel: "AUSCAN",
+    maxScore: 60,
     kind: "avaliacao",
   },
   {

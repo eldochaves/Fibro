@@ -58,6 +58,10 @@ function summaryLine(key: string, s: Record<string, unknown> | null): string {
     );
   if (key === "womac")
     return `Dor ${s.pain}/20 · Rigidez ${s.stiffness}/8 · Função ${s.function}/68`;
+  if (Array.isArray(s.subscales))
+    return (s.subscales as { title: string; score: number }[])
+      .map((x) => `${x.title} ${x.score}`)
+      .join(" · ");
   if (typeof s.met === "boolean")
     return `${s.met ? "Atende" : "Não atende"} · ${s.count} item(ns)`;
   if (typeof s.category === "string") return s.category;
@@ -141,6 +145,7 @@ export default async function PatientDetailPage({
         value: Number(rows[0].score ?? 0),
         max: def.maxScore,
         prev: rows[1] ? Number(rows[1].score ?? 0) : null,
+        higherIsBetter: def.higherIsBetter,
       });
     }
   }
@@ -375,7 +380,15 @@ export default async function PatientDetailPage({
                       <h2 className="mb-2 text-sm font-semibold text-navy-700">
                         Evolução — {def.indexLabel} (0–{def.maxScore})
                       </h2>
-                      <SeverityChart points={chart} maxScore={def.maxScore} />
+                      <SeverityChart
+                        points={chart}
+                        maxScore={def.maxScore}
+                        caption={
+                          def.higherIsBetter
+                            ? "Maior = melhor"
+                            : "Maior = pior"
+                        }
+                      />
                     </div>
                   )}
                   <h2 className="mb-3 text-sm font-semibold text-navy-700">

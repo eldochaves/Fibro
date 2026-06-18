@@ -6,9 +6,11 @@ import { getContext, isProfileComplete } from "@/lib/session";
 import { normalizeFrequency, isAvailableNow } from "@/lib/availability";
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { CRITERIA_DEFS } from "@/lib/criteria";
+import { LIKERT_DEFS } from "@/lib/koos";
 import { QUESTIONNAIRE_BY_KEY } from "@/lib/questionnaires";
 import { ScoredChoiceForm } from "@/components/ScoredChoiceForm";
 import { CriteriaForm } from "@/components/CriteriaForm";
+import { LikertScaleForm } from "@/components/LikertScaleForm";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +35,8 @@ export default async function ScoredQuestionnairePage({
   const meta = QUESTIONNAIRE_BY_KEY[key];
   const isScored = Boolean(SCORED_DEFS[key]);
   const isCriteria = Boolean(CRITERIA_DEFS[key]);
-  if (!meta || (!isScored && !isCriteria)) redirect("/inicio");
+  const isLikert = Boolean(LIKERT_DEFS[key]);
+  if (!meta || (!isScored && !isCriteria && !isLikert)) redirect("/inicio");
   if (!(profile?.questionnaires ?? []).includes(key)) redirect("/inicio");
 
   const { data } = await supabase
@@ -68,6 +71,8 @@ export default async function ScoredQuestionnairePage({
         {available ? (
           isScored ? (
             <ScoredChoiceForm questionnaireKey={key} />
+          ) : isLikert ? (
+            <LikertScaleForm questionnaireKey={key} />
           ) : (
             <CriteriaForm questionnaireKey={key} />
           )
