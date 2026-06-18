@@ -196,3 +196,9 @@ alter table public.assessments
   add column if not exists by_doctor boolean not null default false;
 alter table public.questionnaire_responses
   add column if not exists by_doctor boolean not null default false;
+
+-- ---------------------------------------------------------------------
+-- 012 — Dispensar pendência por questionário
+-- ---------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists questionnaire_dismissed jsonb not null default '{}';

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   adminRequestQuestionnaire,
-  adminCancelRequest,
+  adminDismissPendency,
 } from "@/app/actions";
 
 export interface RequestItem {
@@ -32,12 +32,13 @@ export function RequestQuestionnaire({
     else window.alert(res.error ?? "Não foi possível solicitar.");
   }
 
-  async function cancel(key: string) {
+  async function dismiss(key: string) {
+    if (!window.confirm("Dispensar esta pendência?")) return;
     setBusy(key);
-    const res = await adminCancelRequest(userId, key);
+    const res = await adminDismissPendency(userId, key);
     setBusy(null);
     if (res.ok) router.refresh();
-    else window.alert(res.error ?? "Não foi possível cancelar.");
+    else window.alert(res.error ?? "Não foi possível dispensar.");
   }
 
   if (items.length === 0) {
@@ -69,18 +70,14 @@ export function RequestQuestionnaire({
             </div>
           </div>
           {it.pending ? (
-            it.hasRequest ? (
-              <button
-                type="button"
-                onClick={() => cancel(it.key)}
-                disabled={busy === it.key}
-                className="shrink-0 text-xs font-medium text-navy-500 hover:text-red-600 disabled:opacity-50"
-              >
-                {busy === it.key ? "..." : "Cancelar"}
-              </button>
-            ) : (
-              <span className="shrink-0 text-xs text-navy-300">disponível</span>
-            )
+            <button
+              type="button"
+              onClick={() => dismiss(it.key)}
+              disabled={busy === it.key}
+              className="shrink-0 text-xs font-medium text-navy-500 hover:text-red-600 disabled:opacity-50"
+            >
+              {busy === it.key ? "..." : "Dispensar"}
+            </button>
           ) : (
             <button
               type="button"

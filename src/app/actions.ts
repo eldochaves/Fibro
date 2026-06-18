@@ -207,6 +207,37 @@ export async function adminRequestQuestionnaire(userId: string, key: string) {
   return { ok: true as const };
 }
 
+/**
+ * Médico dispensa (apaga) a pendência de um questionário: silencia até surgir
+ * um novo motivo (ex.: nova solicitação ou novo ciclo recorrente). Também
+ * cancela uma solicitação em aberto desse questionário.
+ */
+export async function adminDismissPendency(userId: string, key: string) {
+  const supabase = await requireAdmin();
+  const { data: p } = await supabase
+    .from("profiles")
+    .select("questionnaire_requests, questionnaire_dismissed")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const requests: Record<string, string> = p?.questionnaire_requests ?? {};
+  delete requests[key];
+  const dismissed: Record<string, string> = p?.questionnaire_dismissed ?? {};
+  dismissed[key] = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      questionnaire_requests: requests,
+      questionnaire_dismissed: dismissed,
+    })
+    .eq("id", userId);
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/admin/${userId}`);
+  revalidatePath("/admin");
+  return { ok: true as const };
+}
+
 /** Médico cancela uma solicitação de nova resposta. */
 export async function adminCancelRequest(userId: string, key: string) {
   const supabase = await requireAdmin();

@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { buildWhatsappLink, buildMailtoLink } from "@/lib/whatsapp";
+import { adminDismissPendency } from "@/app/actions";
 
 export interface ReminderItem {
   userId: string;
@@ -21,11 +24,23 @@ export function LembretesList({
   items: ReminderItem[];
   siteUrl: string;
 }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState<string | null>(null);
+
+  async function dismiss(userId: string, key: string) {
+    if (!window.confirm("Dispensar esta pendência?")) return;
+    setBusy(`${userId}-${key}`);
+    const res = await adminDismissPendency(userId, key);
+    setBusy(null);
+    if (res.ok) router.refresh();
+    else window.alert(res.error ?? "Não foi possível dispensar.");
+  }
+
   if (items.length === 0) {
     return (
       <div className="card text-center text-navy-500">
         <div className="mb-2 text-3xl">✅</div>
-        Nenhum paciente com questionário programado pendente no momento.
+        Nenhuma pendência no momento.
       </div>
     );
   }
@@ -83,6 +98,15 @@ export function LembretesList({
                   ✉️ E-mail
                 </a>
               )}
+              <button
+                type="button"
+                onClick={() => dismiss(it.userId, it.questionnaireKey)}
+                disabled={busy === `${it.userId}-${it.questionnaireKey}`}
+                className="px-2 py-2 text-sm font-medium text-navy-400 hover:text-red-600 disabled:opacity-50"
+                title="Dispensar pendência"
+              >
+                Dispensar
+              </button>
             </div>
           </li>
         );

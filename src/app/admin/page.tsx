@@ -36,6 +36,7 @@ interface ProfileRow {
   questionnaires: string[] | null;
   questionnaire_freq: Record<string, string> | null;
   questionnaire_requests: Record<string, string> | null;
+  questionnaire_dismissed: Record<string, string> | null;
 }
 
 const DAY = 86400000;
@@ -49,7 +50,7 @@ export default async function AdminPage() {
       supabase
         .from("profiles")
         .select(
-          "id, full_name, email, avatar_url, diseases, questionnaires, questionnaire_freq, questionnaire_requests"
+          "id, full_name, email, avatar_url, diseases, questionnaires, questionnaire_freq, questionnaire_requests, questionnaire_dismissed"
         ),
       supabase
         .from("assessments")
@@ -120,11 +121,12 @@ export default async function AdminPage() {
       // Pendência: questionário programado disponível agora
       const freqMap = p.questionnaire_freq ?? {};
       const reqMap = p.questionnaire_requests ?? {};
+      const dismMap = p.questionnaire_dismissed ?? {};
       let pending = false;
       for (const key of p.questionnaires ?? []) {
         if (!QUESTIONNAIRE_BY_KEY[key]) continue;
         const freq = normalizeFrequency(freqMap[key]);
-        if (isPending(freq, lastDate(p.id, key), reqMap[key])) {
+        if (isPending(freq, lastDate(p.id, key), reqMap[key], dismMap[key])) {
           pending = true;
           break;
         }

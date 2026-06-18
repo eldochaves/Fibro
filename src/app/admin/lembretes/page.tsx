@@ -19,6 +19,7 @@ interface ProfileRow {
   questionnaires: string[] | null;
   questionnaire_freq: Record<string, string> | null;
   questionnaire_requests: Record<string, string> | null;
+  questionnaire_dismissed: Record<string, string> | null;
 }
 
 function fmt(iso: string) {
@@ -38,7 +39,7 @@ export default async function LembretesPage() {
       supabase
         .from("profiles")
         .select(
-          "id, full_name, email, phone, avatar_url, questionnaires, questionnaire_freq, questionnaire_requests"
+          "id, full_name, email, phone, avatar_url, questionnaires, questionnaire_freq, questionnaire_requests, questionnaire_dismissed"
         ),
       supabase
         .from("assessments")
@@ -75,12 +76,13 @@ export default async function LembretesPage() {
     if (p.email && adminEmails.has(p.email.toLowerCase())) continue;
     const freqMap = p.questionnaire_freq ?? {};
     const reqMap = p.questionnaire_requests ?? {};
+    const dismMap = p.questionnaire_dismissed ?? {};
     for (const key of p.questionnaires ?? []) {
       const def = QUESTIONNAIRE_BY_KEY[key];
       if (!def) continue;
       const freq = normalizeFrequency(freqMap[key]);
       const lastIso = last.get(`${p.id}|${key}`) ?? null;
-      if (!isPending(freq, lastIso, reqMap[key])) continue;
+      if (!isPending(freq, lastIso, reqMap[key], dismMap[key])) continue;
       items.push({
         userId: p.id,
         name: p.full_name,

@@ -66,20 +66,42 @@ export function isAvailableNow(
 }
 
 /**
- * Pendência ("questionário em aberto"): há algo para o paciente responder.
- *  - solicitação do médico em aberto → pendente
- *  - nunca respondido → sempre pendente (inclui "apenas uma vez" e "sempre")
- *  - recorrente (anual / a cada 4 meses) que reabriu → pendente
- *  - "apenas uma vez" ou "sempre" já respondido → não pendente
+ * Momento (ms) em que a pendência atual começou, ou null se não há pendência.
+ *  - solicitação do médico em aberto → data da solicitação
+ *  - nunca respondido → 0 (desde sempre)
+ *  - recorrente reaberto → data da reabertura
+ */
+export function pendingSince(
+  freq: Frequency,
+  lastISO: string | null | undefined,
+  requestedISO?: string | null
+): number | null {
+  if (hasOpenRequest(requestedISO, lastISO)) return Date.parse(requestedISO!);
+  if (!lastISO) return 0;
+  if (freq === "yearly" || freq === "quarterly4") {
+    const na = nextAvailable(freq, lastISO);
+    if (na === null) {
+      const d = new Date(lastISO);
+      if (freq === "yearly") d.setFullYear(d.getFullYear() + 1);
+      else d.setMonth(d.getMonth() + 4);
+      return d.getTime();
+    }
+  }
+  return null;
+}
+
+/**
+ * Pendência ("questionário em aberto"), considerando dispensa do médico.
+ * Se a dispensa for igual/posterior ao início da pendência, ela é silenciada.
  */
 export function isPending(
   freq: Frequency,
   lastISO: string | null | undefined,
-  requestedISO?: string | null
+  requestedISO?: string | null,
+  dismissedISO?: string | null
 ): boolean {
-  if (hasOpenRequest(requestedISO, lastISO)) return true;
-  if (!lastISO) return true;
-  if (freq === "yearly" || freq === "quarterly4")
-    return nextAvailable(freq, lastISO) === null;
-  return false;
+  const since = pendingSince(freq, lastISO, requestedISO);
+  if (since === null) return false;
+  if (dismissedISO && Date.parse(dismissedISO) >= since) return false;
+  return true;
 }

@@ -79,7 +79,7 @@ export default async function PatientDetailPage({
     supabase
       .from("profiles")
       .select(
-        "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled, diseases, questionnaires, questionnaire_freq, questionnaire_requests"
+        "id, full_name, email, cpf, birth_date, phone, avatar_url, pain_diary_enabled, diseases, questionnaires, questionnaire_freq, questionnaire_requests, questionnaire_dismissed"
       )
       .eq("id", userId)
       .maybeSingle(),
@@ -146,6 +146,8 @@ export default async function PatientDetailPage({
   const freqMap = (profile.questionnaire_freq as Record<string, string>) ?? {};
   const reqMap =
     (profile.questionnaire_requests as Record<string, string>) ?? {};
+  const dismMap =
+    (profile.questionnaire_dismissed as Record<string, string>) ?? {};
   const lastFor = (key: string): string | null =>
     key === "acr2016"
       ? list[0]?.created_at ?? null
@@ -159,7 +161,7 @@ export default async function PatientDetailPage({
       return {
         key,
         name: QUESTIONNAIRE_BY_KEY[key].name,
-        pending: isPending(freq, last, requested),
+        pending: isPending(freq, last, requested, dismMap[key]),
         hasRequest: hasOpenRequest(requested, last),
       };
     });

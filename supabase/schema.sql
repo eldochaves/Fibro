@@ -19,6 +19,7 @@ create table if not exists public.profiles (
   questionnaires text[] not null default '{}',
   questionnaire_freq jsonb not null default '{}',
   questionnaire_requests jsonb not null default '{}',
+  questionnaire_dismissed jsonb not null default '{}',
   created_at timestamptz not null default now()
 );
 
