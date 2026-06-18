@@ -58,6 +58,8 @@ function summaryLine(key: string, s: Record<string, unknown> | null): string {
     );
   if (key === "womac")
     return `Dor ${s.pain}/20 · Rigidez ${s.stiffness}/8 · Função ${s.function}/68`;
+  if (typeof s.met === "boolean")
+    return `${s.met ? "Atende" : "Não atende"} · ${s.count} item(ns)`;
   if (typeof s.category === "string") return s.category;
   return "";
 }

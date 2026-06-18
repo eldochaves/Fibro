@@ -19,6 +19,7 @@ import { computeWomac } from "@/lib/womac";
 import { computeEva } from "@/lib/eva";
 import { computeScored } from "@/lib/scored";
 import { SCORED_DEFS } from "@/lib/lequesne";
+import { computeCriteria, CRITERIA_DEFS } from "@/lib/criteria";
 
 /** Salva uma avaliação ACR 2016 para o usuário autenticado. */
 export async function saveAssessment(answers: FibroAnswers) {
@@ -335,7 +336,7 @@ export async function adminSaveAssessment(userId: string, answers: FibroAnswers)
 async function adminSaveResponse(
   userId: string,
   key: string,
-  answers: Record<string, number>,
+  answers: Record<string, unknown>,
   score: number,
   summary: Record<string, unknown>
 ) {
@@ -763,6 +764,46 @@ export async function adminSaveScored(
   const r = computeScored(def, answers);
   return adminSaveResponse(userId, key, answers, r.total, {
     category: r.category,
+  });
+}
+
+/** Paciente salva um critério diagnóstico/classificatório (checklist). */
+export async function saveCriteria(
+  key: string,
+  answers: Record<string, boolean>
+) {
+  const def = CRITERIA_DEFS[key];
+  if (!def) return { ok: false as const, error: "Critério inválido." };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const r = computeCriteria(def, answers);
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: key,
+    answers,
+    score: r.count,
+    summary: { met: r.met, count: r.count, gateOk: r.gateOk },
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/q/${key}`);
+  return { ok: true as const, result: r };
+}
+
+export async function adminSaveCriteria(
+  userId: string,
+  key: string,
+  answers: Record<string, boolean>
+) {
+  const def = CRITERIA_DEFS[key];
+  if (!def) return { ok: false as const, error: "Critério inválido." };
+  const r = computeCriteria(def, answers);
+  return adminSaveResponse(userId, key, answers as Record<string, unknown>, r.count, {
+    met: r.met,
+    count: r.count,
+    gateOk: r.gateOk,
   });
 }
 

@@ -11,6 +11,8 @@ import { WomacForm } from "@/app/womac/WomacForm";
 import { EvaForm } from "@/app/eva/EvaForm";
 import { ScoredChoiceForm } from "@/components/ScoredChoiceForm";
 import { SCORED_DEFS } from "@/lib/lequesne";
+import { CriteriaForm } from "@/components/CriteriaForm";
+import { CRITERIA_DEFS } from "@/lib/criteria";
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +99,14 @@ export default async function AdminResponderPage({
               {def.name}
             </h1>
             <ScoredChoiceForm questionnaireKey={key} targetUserId={userId} />
+          </>
+        )}
+        {CRITERIA_DEFS[key] && (
+          <>
+            <h1 className="mb-4 font-display text-2xl font-semibold text-navy-800">
+              {def.name}
+            </h1>
+            <CriteriaForm questionnaireKey={key} targetUserId={userId} />
           </>
         )}
       </main>

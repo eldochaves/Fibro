@@ -5,8 +5,10 @@ import { Footer } from "@/components/Footer";
 import { getContext, isProfileComplete } from "@/lib/session";
 import { normalizeFrequency, isAvailableNow } from "@/lib/availability";
 import { SCORED_DEFS } from "@/lib/lequesne";
+import { CRITERIA_DEFS } from "@/lib/criteria";
 import { QUESTIONNAIRE_BY_KEY } from "@/lib/questionnaires";
 import { ScoredChoiceForm } from "@/components/ScoredChoiceForm";
+import { CriteriaForm } from "@/components/CriteriaForm";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +17,7 @@ interface QrRow {
   created_at: string;
   score: number | null;
   by_doctor: boolean | null;
-  summary: { category?: string | null } | null;
+  summary: { category?: string | null; met?: boolean } | null;
 }
 
 export default async function ScoredQuestionnairePage({
@@ -28,9 +30,10 @@ export default async function ScoredQuestionnairePage({
   if (isAdmin) redirect("/admin");
   if (!isProfileComplete(profile)) redirect("/perfil");
 
-  const def = SCORED_DEFS[key];
   const meta = QUESTIONNAIRE_BY_KEY[key];
-  if (!def || !meta) redirect("/inicio");
+  const isScored = Boolean(SCORED_DEFS[key]);
+  const isCriteria = Boolean(CRITERIA_DEFS[key]);
+  if (!meta || (!isScored && !isCriteria)) redirect("/inicio");
   if (!(profile?.questionnaires ?? []).includes(key)) redirect("/inicio");
 
   const { data } = await supabase
@@ -63,7 +66,11 @@ export default async function ScoredQuestionnairePage({
         <p className="mb-6 mt-1 text-sm text-navy-500">{meta.description}</p>
 
         {available ? (
-          <ScoredChoiceForm questionnaireKey={key} />
+          isScored ? (
+            <ScoredChoiceForm questionnaireKey={key} />
+          ) : (
+            <CriteriaForm questionnaireKey={key} />
+          )
         ) : (
           <div className="card text-center text-navy-500">
             <div className="mb-2 text-3xl">✅</div>
@@ -89,9 +96,16 @@ export default async function ScoredQuestionnairePage({
                         {h.summary.category}
                       </span>
                     )}
+                    {typeof h.summary?.met === "boolean" && (
+                      <span className="ml-2 font-normal text-navy-400">
+                        {h.summary.met ? "Atende" : "Não atende"}
+                      </span>
+                    )}
                   </div>
                   <span className="chip-teal">
-                    {h.score}/{meta.maxScore}
+                    {isCriteria
+                      ? `${h.score}/${meta.maxScore} itens`
+                      : `${h.score}/${meta.maxScore}`}
                   </span>
                 </li>
               ))}
