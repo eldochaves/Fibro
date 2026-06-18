@@ -28,6 +28,7 @@ import {
   REGION_ORDER,
   type QuestionnaireDef,
 } from "@/lib/questionnaires";
+import { diseaseTheme } from "@/lib/diseaseTheme";
 import {
   normalizeFrequency,
   isPending,
@@ -377,11 +378,18 @@ export default async function PatientDetailPage({
           </div>
           {(profile.diseases ?? []).length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
-              {(profile.diseases as string[]).map((d) => (
-                <span key={d} className="chip-teal">
-                  {DISEASE_LABEL[d] ?? d}
-                </span>
-              ))}
+              {(profile.diseases as string[]).map((d) => {
+                const theme = diseaseTheme(d);
+                return (
+                  <span
+                    key={d}
+                    className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium ${theme.chipActive}`}
+                  >
+                    <span>{theme.icon}</span>
+                    {DISEASE_LABEL[d] ?? d}
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>
@@ -457,9 +465,13 @@ export default async function PatientDetailPage({
               <>
                 {diseaseGroups.map((group) => {
                   const { noRegion, groups } = regionSplit(group.defs);
+                  const theme = diseaseTheme(group.key);
                   return (
                     <section key={group.key}>
-                      <h2 className="mb-3 border-l-4 border-teal-500 pl-2 font-display text-lg font-semibold text-navy-800">
+                      <h2
+                        className={`mb-3 flex items-center gap-2 border-l-4 pl-2 font-display text-lg font-semibold ${theme.accentBorder} ${theme.title}`}
+                      >
+                        <span>{theme.icon}</span>
                         {group.label}
                       </h2>
                       <div className="space-y-4">

@@ -19,6 +19,7 @@ import {
   normalizeFrequency,
   type Frequency,
 } from "@/lib/availability";
+import { diseaseTheme } from "@/lib/diseaseTheme";
 
 export function PatientCareEditor({
   userId,
@@ -243,6 +244,7 @@ export function PatientCareEditor({
         <div className="flex flex-wrap gap-2">
           {DISEASES.map((d) => {
             const active = diseases.includes(d.key);
+            const theme = diseaseTheme(d.key);
             return (
               <button
                 key={d.key}
@@ -251,10 +253,11 @@ export function PatientCareEditor({
                 aria-pressed={active}
                 className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                   active
-                    ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
+                    ? theme.chipActive
                     : "border-navy-200 bg-white text-navy-600 hover:border-navy-300"
                 }`}
               >
+                <span className="mr-1">{theme.icon}</span>
                 {d.label}
               </button>
             );
@@ -277,22 +280,31 @@ export function PatientCareEditor({
               questionnaires.includes(q.key)
             ).length;
             const allOn = activeCount === items.length;
+            const theme = diseaseTheme(d.key);
             return (
-              <div
-                key={d.key}
-                className="rounded-2xl border border-navy-100 bg-navy-50/40 p-4"
-              >
+              <div key={d.key} className={theme.container}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="font-display text-base font-semibold text-navy-800">
-                    {DISEASE_LABEL[d.key]}
-                    <span className="ml-2 text-xs font-normal text-navy-400">
-                      {activeCount}/{items.length} liberados
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg ${theme.iconWrap}`}
+                    >
+                      {theme.icon}
                     </span>
-                  </h3>
+                    <h3
+                      className={`font-display text-base font-semibold ${theme.title}`}
+                    >
+                      {DISEASE_LABEL[d.key]}
+                      <span
+                        className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-medium ${theme.countBadge}`}
+                      >
+                        {activeCount}/{items.length} liberados
+                      </span>
+                    </h3>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setDiseaseAll(d.key, !allOn)}
-                    className="text-xs font-medium text-teal-700 hover:underline"
+                    className="text-xs font-medium text-navy-600 underline-offset-2 hover:underline"
                   >
                     {allOn ? "Limpar todos" : "Liberar todos"}
                   </button>
