@@ -32,18 +32,23 @@ export default async function ConvitePage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, cpf, birth_date, questionnaires")
+    .select("full_name, cpf, birth_date, questionnaires, questionnaire_requests")
     .eq("id", user.id)
     .maybeSingle();
 
-  // Libera o questionário para este paciente (se ainda não estiver)
+  // Libera o questionário e reabre (mesmo se já respondido antes), garantindo
+  // que ele abra agora para este paciente.
   const current: string[] = profile?.questionnaires ?? [];
-  if (!current.includes(key)) {
-    await supabase
-      .from("profiles")
-      .update({ questionnaires: [...current, key] })
-      .eq("id", user.id);
-  }
+  const requests: Record<string, string> =
+    (profile?.questionnaire_requests as Record<string, string>) ?? {};
+  requests[key] = new Date().toISOString();
+  await supabase
+    .from("profiles")
+    .update({
+      questionnaires: current.includes(key) ? current : [...current, key],
+      questionnaire_requests: requests,
+    })
+    .eq("id", user.id);
 
   const complete = Boolean(
     profile?.full_name && profile?.cpf && profile?.birth_date
