@@ -47,6 +47,8 @@ export interface QuestionnaireDef {
   criterionType?: "diagnostico" | "classificatorio";
   /** Quando true, MAIOR escore = MELHOR (ex.: KOOS/HOOS, 0–100). */
   higherIsBetter?: boolean;
+  /** Região anatômica (para sub-agrupar dentro de uma doença, ex.: OA). */
+  region?: string;
 }
 
 export const QUESTIONNAIRES: QuestionnaireDef[] = [
@@ -120,6 +122,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     indexLabel: "WOMAC",
     maxScore: 96,
     kind: "avaliacao",
+    region: "joelho_quadril",
   },
   {
     key: "lequesne_joelho",
@@ -133,6 +136,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     indexLabel: "Lequesne joelho",
     maxScore: 24,
     kind: "avaliacao",
+    region: "joelho",
   },
   {
     key: "lequesne_quadril",
@@ -146,6 +150,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     indexLabel: "Lequesne quadril",
     maxScore: 24,
     kind: "avaliacao",
+    region: "quadril",
   },
   {
     key: "eva",
@@ -174,6 +179,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     maxScore: 100,
     kind: "avaliacao",
     higherIsBetter: true,
+    region: "joelho",
   },
   {
     key: "hoos",
@@ -189,6 +195,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     maxScore: 100,
     kind: "avaliacao",
     higherIsBetter: true,
+    region: "quadril",
   },
   {
     key: "auscan",
@@ -203,6 +210,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     indexLabel: "AUSCAN",
     maxScore: 60,
     kind: "avaliacao",
+    region: "maos",
   },
   {
     key: "fihoa",
@@ -216,6 +224,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     indexLabel: "FIHOA",
     maxScore: 30,
     kind: "avaliacao",
+    region: "maos",
   },
   {
     key: "acr_joelho",
@@ -230,6 +239,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     maxScore: 6,
     kind: "criterio",
     criterionType: "classificatorio",
+    region: "joelho",
   },
   {
     key: "acr_maos",
@@ -244,6 +254,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     maxScore: 4,
     kind: "criterio",
     criterionType: "classificatorio",
+    region: "maos",
   },
   {
     key: "eular_joelho",
@@ -258,8 +269,19 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     maxScore: 6,
     kind: "criterio",
     criterionType: "diagnostico",
+    region: "joelho",
   },
 ];
+
+/** Rótulos e ordem das regiões anatômicas (sub-agrupamento dentro da doença). */
+export const REGION_LABEL: Record<string, string> = {
+  joelho: "Joelho",
+  joelho_quadril: "Joelho e quadril",
+  quadril: "Quadril",
+  maos: "Mãos",
+};
+
+export const REGION_ORDER = ["joelho", "joelho_quadril", "quadril", "maos"];
 
 export const CRITERION_TYPE_LABEL: Record<string, string> = {
   diagnostico: "Critério diagnóstico",

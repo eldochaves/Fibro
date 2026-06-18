@@ -6,9 +6,12 @@ import { useRouter } from "next/navigation";
 import { adminSetPatientCare } from "@/app/actions";
 import {
   DISEASES,
+  DISEASE_LABEL,
   QUESTIONNAIRES,
   QUESTIONNAIRE_BY_KEY,
   CRITERION_TYPE_LABEL,
+  REGION_LABEL,
+  REGION_ORDER,
   type QuestionnaireDef,
 } from "@/lib/questionnaires";
 import {
@@ -86,12 +89,56 @@ export function PatientCareEditor({
     }
   }
 
-  // Só mostra questionários da(s) doença(s) marcada(s); genéricos (EVA) sempre.
-  const visible = QUESTIONNAIRES.filter(
-    (q) => q.diseases.length === 0 || q.diseases.some((d) => diseases.includes(d))
-  );
-  const avaliacoes = visible.filter((q) => q.kind !== "criterio");
-  const criterios = visible.filter((q) => q.kind === "criterio");
+  // Doenças marcadas (na ordem do catálogo) e questionários genéricos (EVA).
+  const selectedDiseases = DISEASES.filter((d) => diseases.includes(d.key));
+  const genericItems = QUESTIONNAIRES.filter((q) => q.diseases.length === 0);
+
+  const itemsOfDisease = (diseaseKey: string) =>
+    QUESTIONNAIRES.filter((q) => q.diseases.includes(diseaseKey));
+
+  // Libera/limpa todos os questionários de uma doença de uma vez.
+  function setDiseaseAll(diseaseKey: string, on: boolean) {
+    setSaved(false);
+    const keys = itemsOfDisease(diseaseKey).map((q) => q.key);
+    setQuestionnaires((prev) =>
+      on
+        ? Array.from(new Set([...prev, ...keys]))
+        : prev.filter((k) => !keys.includes(k))
+    );
+  }
+
+  // Agrupa uma lista de questionários por região (joelho, mãos, quadril…).
+  function byRegion(items: QuestionnaireDef[]) {
+    const noRegion = items.filter((q) => !q.region);
+    const groups = REGION_ORDER.map((r) => ({
+      region: r,
+      label: REGION_LABEL[r],
+      items: items.filter((q) => q.region === r),
+    })).filter((g) => g.items.length > 0);
+    return { noRegion, groups };
+  }
+
+  // Renderiza uma categoria (avaliações OU critérios) com sub-grupos por região.
+  function renderCategory(label: string, items: QuestionnaireDef[]) {
+    if (items.length === 0) return null;
+    const { noRegion, groups } = byRegion(items);
+    return (
+      <div className="mt-4">
+        <span className="label">{label}</span>
+        {noRegion.length > 0 && (
+          <div className="space-y-2">{noRegion.map(renderItem)}</div>
+        )}
+        {groups.map((g) => (
+          <div key={g.region} className="mt-3">
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-navy-400">
+              {g.label}
+            </div>
+            <div className="space-y-2">{g.items.map(renderItem)}</div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   function renderItem(q: QuestionnaireDef) {
     const active = questionnaires.includes(q.key);
@@ -215,23 +262,57 @@ export function PatientCareEditor({
         </div>
       </div>
 
-      {/* Ferramentas de avaliação */}
-      <div className="mt-5">
-        <span className="label">Ferramentas de avaliação</span>
-        {avaliacoes.length === 0 ? (
-          <p className="text-sm text-navy-400">
-            Marque uma doença acima para ver os questionários disponíveis.
-          </p>
-        ) : (
-          <div className="space-y-2">{avaliacoes.map(renderItem)}</div>
-        )}
-      </div>
+      {/* Questionários agrupados por doença */}
+      {selectedDiseases.length === 0 ? (
+        <p className="mt-5 text-sm text-navy-400">
+          Marque uma doença acima para ver os questionários disponíveis.
+        </p>
+      ) : (
+        <div className="mt-5 space-y-4">
+          {selectedDiseases.map((d) => {
+            const items = itemsOfDisease(d.key);
+            const avaliacoes = items.filter((q) => q.kind !== "criterio");
+            const criterios = items.filter((q) => q.kind === "criterio");
+            const activeCount = items.filter((q) =>
+              questionnaires.includes(q.key)
+            ).length;
+            const allOn = activeCount === items.length;
+            return (
+              <div
+                key={d.key}
+                className="rounded-2xl border border-navy-100 bg-navy-50/40 p-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="font-display text-base font-semibold text-navy-800">
+                    {DISEASE_LABEL[d.key]}
+                    <span className="ml-2 text-xs font-normal text-navy-400">
+                      {activeCount}/{items.length} liberados
+                    </span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setDiseaseAll(d.key, !allOn)}
+                    className="text-xs font-medium text-teal-700 hover:underline"
+                  >
+                    {allOn ? "Limpar todos" : "Liberar todos"}
+                  </button>
+                </div>
+                {renderCategory("Ferramentas de avaliação", avaliacoes)}
+                {renderCategory(
+                  "Critérios diagnósticos / classificatórios",
+                  criterios
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Critérios diagnósticos / classificatórios */}
-      {criterios.length > 0 && (
+      {/* Genéricos — sempre disponíveis (EVA) */}
+      {genericItems.length > 0 && (
         <div className="mt-5">
-          <span className="label">Critérios diagnósticos / classificatórios</span>
-          <div className="space-y-2">{criterios.map(renderItem)}</div>
+          <span className="label">Sempre disponível (qualquer doença)</span>
+          <div className="space-y-2">{genericItems.map(renderItem)}</div>
         </div>
       )}
 
