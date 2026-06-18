@@ -8,6 +8,8 @@ import {
   DISEASES,
   QUESTIONNAIRES,
   QUESTIONNAIRE_BY_KEY,
+  CRITERION_TYPE_LABEL,
+  type QuestionnaireDef,
 } from "@/lib/questionnaires";
 import {
   FREQUENCY_OPTIONS,
@@ -84,6 +86,100 @@ export function PatientCareEditor({
     }
   }
 
+  // Só mostra questionários da(s) doença(s) marcada(s); genéricos (EVA) sempre.
+  const visible = QUESTIONNAIRES.filter(
+    (q) => q.diseases.length === 0 || q.diseases.some((d) => diseases.includes(d))
+  );
+  const avaliacoes = visible.filter((q) => q.kind !== "criterio");
+  const criterios = visible.filter((q) => q.kind === "criterio");
+
+  function renderItem(q: QuestionnaireDef) {
+    const active = questionnaires.includes(q.key);
+    return (
+      <div
+        key={q.key}
+        className={`rounded-xl border transition ${
+          active
+            ? "border-teal-500 bg-teal-50 ring-1 ring-teal-500"
+            : "border-navy-200 bg-white"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => toggle(questionnaires, setQuestionnaires, q.key)}
+          aria-pressed={active}
+          className="flex w-full items-start gap-3 px-4 py-3 text-left"
+        >
+          <span
+            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+              active
+                ? "border-teal-600 bg-teal-600 text-white"
+                : "border-navy-300"
+            }`}
+          >
+            {active && (
+              <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.1 3.1 6.8-6.8a1 1 0 0 1 1.4 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-navy-800">
+              {q.name}
+            </span>
+            <span className="block text-xs text-navy-400">{q.description}</span>
+            {q.kind === "criterio" && q.criterionType && (
+              <span className="mt-1 inline-block rounded-full bg-navy-100 px-2 py-0.5 text-[11px] font-medium text-navy-600">
+                {CRITERION_TYPE_LABEL[q.criterionType]}
+              </span>
+            )}
+          </span>
+        </button>
+
+        {active && (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-teal-200 px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor={`freq-${q.key}`}
+                className="text-xs font-medium text-navy-600"
+              >
+                Disponibilidade:
+              </label>
+              <select
+                id={`freq-${q.key}`}
+                value={freq[q.key]}
+                onChange={(e) => {
+                  setSaved(false);
+                  setFreq((f) => ({
+                    ...f,
+                    [q.key]: e.target.value as Frequency,
+                  }));
+                }}
+                className="rounded-lg border border-navy-200 bg-white px-2 py-1 text-sm text-navy-800 outline-none focus:border-teal-400"
+              >
+                {FREQUENCY_OPTIONS.map((o) => (
+                  <option key={o.key} value={o.key}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Link
+              href={`/admin/${userId}/responder/${q.key}`}
+              className="text-sm font-medium text-teal-700 hover:underline"
+            >
+              ✍️ Responder pelo paciente
+            </Link>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="card print:hidden">
       <h2 className="font-display text-lg font-semibold text-navy-800">
@@ -119,97 +215,25 @@ export function PatientCareEditor({
         </div>
       </div>
 
-      {/* Questionários */}
+      {/* Ferramentas de avaliação */}
       <div className="mt-5">
-        <span className="label">Questionários liberados</span>
-        <div className="space-y-2">
-          {QUESTIONNAIRES.map((q) => {
-            const active = questionnaires.includes(q.key);
-            return (
-              <div
-                key={q.key}
-                className={`rounded-xl border transition ${
-                  active
-                    ? "border-teal-500 bg-teal-50 ring-1 ring-teal-500"
-                    : "border-navy-200 bg-white"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    toggle(questionnaires, setQuestionnaires, q.key)
-                  }
-                  aria-pressed={active}
-                  className="flex w-full items-start gap-3 px-4 py-3 text-left"
-                >
-                  <span
-                    className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                      active
-                        ? "border-teal-600 bg-teal-600 text-white"
-                        : "border-navy-300"
-                    }`}
-                  >
-                    {active && (
-                      <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                          fillRule="evenodd"
-                          d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.1 3.1 6.8-6.8a1 1 0 0 1 1.4 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    )}
-                  </span>
-                  <span>
-                    <span className="block text-sm font-semibold text-navy-800">
-                      {q.name}
-                    </span>
-                    <span className="block text-xs text-navy-400">
-                      {q.description}
-                    </span>
-                  </span>
-                </button>
-
-                {active && (
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-teal-200 px-4 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <label
-                        htmlFor={`freq-${q.key}`}
-                        className="text-xs font-medium text-navy-600"
-                      >
-                        Disponibilidade:
-                      </label>
-                      <select
-                        id={`freq-${q.key}`}
-                        value={freq[q.key]}
-                        onChange={(e) => {
-                          setSaved(false);
-                          setFreq((f) => ({
-                            ...f,
-                            [q.key]: e.target.value as Frequency,
-                          }));
-                        }}
-                        className="rounded-lg border border-navy-200 bg-white px-2 py-1 text-sm text-navy-800 outline-none focus:border-teal-400"
-                      >
-                        {FREQUENCY_OPTIONS.map((o) => (
-                          <option key={o.key} value={o.key}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <Link
-                      href={`/admin/${userId}/responder/${q.key}`}
-                      className="text-sm font-medium text-teal-700 hover:underline"
-                    >
-                      ✍️ Responder pelo paciente
-                    </Link>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <span className="label">Ferramentas de avaliação</span>
+        {avaliacoes.length === 0 ? (
+          <p className="text-sm text-navy-400">
+            Marque uma doença acima para ver os questionários disponíveis.
+          </p>
+        ) : (
+          <div className="space-y-2">{avaliacoes.map(renderItem)}</div>
+        )}
       </div>
+
+      {/* Critérios diagnósticos / classificatórios */}
+      {criterios.length > 0 && (
+        <div className="mt-5">
+          <span className="label">Critérios diagnósticos / classificatórios</span>
+          <div className="space-y-2">{criterios.map(renderItem)}</div>
+        </div>
+      )}
 
       {error && (
         <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">

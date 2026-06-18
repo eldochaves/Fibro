@@ -41,6 +41,10 @@ export interface QuestionnaireDef {
   indexLabel: string;
   /** Escore máximo (para o gráfico e exibição). */
   maxScore: number;
+  /** Tipo: ferramenta de avaliação ou critério diagnóstico/classificatório. */
+  kind: "avaliacao" | "criterio";
+  /** Para critérios: se é diagnóstico ou classificatório. */
+  criterionType?: "diagnostico" | "classificatorio";
 }
 
 export const QUESTIONNAIRES: QuestionnaireDef[] = [
@@ -56,6 +60,8 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     storage: "assessments",
     indexLabel: "FS",
     maxScore: 31,
+    kind: "criterio",
+    criterionType: "diagnostico",
   },
   {
     key: "fiqr",
@@ -69,6 +75,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     storage: "responses",
     indexLabel: "FIQR",
     maxScore: 100,
+    kind: "avaliacao",
   },
   {
     key: "csi",
@@ -82,6 +89,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     storage: "responses",
     indexLabel: "CSI",
     maxScore: 100,
+    kind: "avaliacao",
   },
   {
     key: "pcs",
@@ -95,6 +103,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     storage: "responses",
     indexLabel: "PCS",
     maxScore: 52,
+    kind: "avaliacao",
   },
   {
     key: "womac",
@@ -108,6 +117,7 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     storage: "responses",
     indexLabel: "WOMAC",
     maxScore: 96,
+    kind: "avaliacao",
   },
   {
     key: "eva",
@@ -116,12 +126,18 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     description: "Intensidade da dor de 0 (sem dor) a 10 (pior dor).",
     path: "/eva",
     icon: "📏",
-    diseases: ["osteoartrite"],
+    diseases: [], // genérico: aplica-se a qualquer doença (sempre disponível)
     storage: "responses",
     indexLabel: "EVA",
     maxScore: 10,
+    kind: "avaliacao",
   },
 ];
+
+export const CRITERION_TYPE_LABEL: Record<string, string> = {
+  diagnostico: "Critério diagnóstico",
+  classificatorio: "Critério classificatório",
+};
 
 export const QUESTIONNAIRE_BY_KEY: Record<string, QuestionnaireDef> =
   Object.fromEntries(QUESTIONNAIRES.map((q) => [q.key, q]));
