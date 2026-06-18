@@ -17,6 +17,8 @@ import { computeCsi } from "@/lib/csi";
 import { computePcs } from "@/lib/pcs";
 import { computeWomac } from "@/lib/womac";
 import { computeEva } from "@/lib/eva";
+import { computeScored } from "@/lib/scored";
+import { SCORED_DEFS } from "@/lib/lequesne";
 
 /** Salva uma avaliação ACR 2016 para o usuário autenticado. */
 export async function saveAssessment(answers: FibroAnswers) {
@@ -724,6 +726,44 @@ export async function saveEva(answers: { eva: number }) {
   if (error) return { ok: false as const, error: error.message };
   revalidatePath("/eva");
   return { ok: true as const, result: r };
+}
+
+/** Paciente salva uma resposta de questionário "por escolhas pontuadas" (Lequesne). */
+export async function saveScored(
+  key: string,
+  answers: Record<string, number>
+) {
+  const def = SCORED_DEFS[key];
+  if (!def) return { ok: false as const, error: "Questionário inválido." };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const r = computeScored(def, answers);
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: key,
+    answers,
+    score: r.total,
+    summary: { category: r.category },
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/q/${key}`);
+  return { ok: true as const, result: r };
+}
+
+export async function adminSaveScored(
+  userId: string,
+  key: string,
+  answers: Record<string, number>
+) {
+  const def = SCORED_DEFS[key];
+  if (!def) return { ok: false as const, error: "Questionário inválido." };
+  const r = computeScored(def, answers);
+  return adminSaveResponse(userId, key, answers, r.total, {
+    category: r.category,
+  });
 }
 
 /** Apaga uma resposta de questionário (paciente: as próprias; médico: qualquer). */

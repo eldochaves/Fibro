@@ -9,6 +9,8 @@ import { CsiForm } from "@/app/csi/CsiForm";
 import { PcsForm } from "@/app/pcs/PcsForm";
 import { WomacForm } from "@/app/womac/WomacForm";
 import { EvaForm } from "@/app/eva/EvaForm";
+import { ScoredChoiceForm } from "@/components/ScoredChoiceForm";
+import { SCORED_DEFS } from "@/lib/lequesne";
 
 export const dynamic = "force-dynamic";
 
@@ -87,6 +89,14 @@ export default async function AdminResponderPage({
               {def.name}
             </h1>
             <EvaForm targetUserId={userId} />
+          </>
+        )}
+        {SCORED_DEFS[key] && (
+          <>
+            <h1 className="mb-4 font-display text-2xl font-semibold text-navy-800">
+              {def.name}
+            </h1>
+            <ScoredChoiceForm questionnaireKey={key} targetUserId={userId} />
           </>
         )}
       </main>
