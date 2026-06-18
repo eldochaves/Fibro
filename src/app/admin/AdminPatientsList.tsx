@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { DISEASE_LABEL } from "@/lib/questionnaires";
+import { diseaseTheme } from "@/lib/diseaseTheme";
 
 export interface PatientIndex {
   label: string;
@@ -79,7 +80,7 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
             <option value="">Todas as doenças</option>
             {diseaseOptions.map((d) => (
               <option key={d} value={d}>
-                {DISEASE_LABEL[d] ?? d}
+                {diseaseTheme(d).icon} {DISEASE_LABEL[d] ?? d}
               </option>
             ))}
           </select>
@@ -146,14 +147,18 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
                   )}
                   {p.diseases.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
-                      {p.diseases.map((d) => (
-                        <span
-                          key={d}
-                          className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-700"
-                        >
-                          {DISEASE_LABEL[d] ?? d}
-                        </span>
-                      ))}
+                      {p.diseases.map((d) => {
+                        const theme = diseaseTheme(d);
+                        return (
+                          <span
+                            key={d}
+                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${theme.chipActive}`}
+                          >
+                            <span>{theme.icon}</span>
+                            {DISEASE_LABEL[d] ?? d}
+                          </span>
+                        );
+                      })}
                     </div>
                   )}
                   {p.indices.length > 0 && (

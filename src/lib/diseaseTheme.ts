@@ -87,6 +87,28 @@ export const DISEASE_THEME: Record<string, DiseaseTheme> = {
       "border-fuchsia-500 bg-fuchsia-100 text-fuchsia-800 ring-1 ring-fuchsia-400",
     accentBorder: "border-fuchsia-500",
   },
+  dor_miofascial: {
+    icon: "💪",
+    container:
+      "rounded-2xl border border-cyan-200 border-l-4 border-l-cyan-500 bg-cyan-50/50 p-4",
+    iconWrap: "bg-cyan-100 text-cyan-700",
+    title: "text-cyan-900",
+    countBadge: "bg-cyan-100 text-cyan-700",
+    chipActive:
+      "border-cyan-500 bg-cyan-100 text-cyan-800 ring-1 ring-cyan-400",
+    accentBorder: "border-cyan-500",
+  },
+  bertolotti: {
+    icon: "🩻",
+    container:
+      "rounded-2xl border border-orange-200 border-l-4 border-l-orange-500 bg-orange-50/50 p-4",
+    iconWrap: "bg-orange-100 text-orange-700",
+    title: "text-orange-900",
+    countBadge: "bg-orange-100 text-orange-700",
+    chipActive:
+      "border-orange-500 bg-orange-100 text-orange-800 ring-1 ring-orange-400",
+    accentBorder: "border-orange-500",
+  },
 };
 
 export const DEFAULT_DISEASE_THEME: DiseaseTheme = {

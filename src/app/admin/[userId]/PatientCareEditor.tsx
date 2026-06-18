@@ -294,25 +294,38 @@ export function PatientCareEditor({
                       className={`font-display text-base font-semibold ${theme.title}`}
                     >
                       {DISEASE_LABEL[d.key]}
-                      <span
-                        className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-medium ${theme.countBadge}`}
-                      >
-                        {activeCount}/{items.length} liberados
-                      </span>
+                      {items.length > 0 && (
+                        <span
+                          className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-medium ${theme.countBadge}`}
+                        >
+                          {activeCount}/{items.length} liberados
+                        </span>
+                      )}
                     </h3>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setDiseaseAll(d.key, !allOn)}
-                    className="text-xs font-medium text-navy-600 underline-offset-2 hover:underline"
-                  >
-                    {allOn ? "Limpar todos" : "Liberar todos"}
-                  </button>
+                  {items.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setDiseaseAll(d.key, !allOn)}
+                      className="text-xs font-medium text-navy-600 underline-offset-2 hover:underline"
+                    >
+                      {allOn ? "Limpar todos" : "Liberar todos"}
+                    </button>
+                  )}
                 </div>
-                {renderCategory("Ferramentas de avaliação", avaliacoes)}
-                {renderCategory(
-                  "Critérios diagnósticos / classificatórios",
-                  criterios
+                {items.length === 0 ? (
+                  <p className="mt-2 text-xs text-navy-500">
+                    Sem questionário específico no momento — use a{" "}
+                    <strong>EVA (dor)</strong> abaixo para quantificar a dor.
+                  </p>
+                ) : (
+                  <>
+                    {renderCategory("Ferramentas de avaliação", avaliacoes)}
+                    {renderCategory(
+                      "Critérios diagnósticos / classificatórios",
+                      criterios
+                    )}
+                  </>
                 )}
               </div>
             );

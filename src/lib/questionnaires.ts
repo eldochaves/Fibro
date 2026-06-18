@@ -20,6 +20,8 @@ export const DISEASES: DiseaseDef[] = [
   { key: "artrite_reumatoide", label: "Artrite Reumatoide" },
   { key: "osteoartrite", label: "Osteoartrite" },
   { key: "dor_cronica", label: "Dor crônica" },
+  { key: "dor_miofascial", label: "Síndrome dolorosa miofascial" },
+  { key: "bertolotti", label: "Síndrome de Bertolotti" },
 ];
 
 export const DISEASE_LABEL: Record<string, string> = Object.fromEntries(
