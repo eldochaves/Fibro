@@ -16,6 +16,17 @@ médico (admin) acompanha todos os pacientes.
   `supabase/migration_00X_*.sql` (rodar no SQL Editor para bancos já criados).
 - Admins (médicos) ficam na tabela `admin_emails`; função `is_admin()`.
 
+## Diretriz — ao sugerir/adicionar uma doença
+SEMPRE que sugerir acrescentar uma doença (ou ao adicioná-la), pesquisar e
+propor os **instrumentos de avaliação e critérios diagnósticos/classificatórios
+relacionados**, baseados em **referências consolidadas: SBR (Sociedade
+Brasileira de Reumatologia), ACR (American College of Rheumatology) e EULAR**.
+Apresentar a lista para o médico escolher antes de implementar, separando
+ferramentas de avaliação de critérios e indicando se cada critério é
+diagnóstico ou classificatório (e o ano/autor da referência). Incluir a EVA
+(0–10) para quantificar a dor quando fizer sentido. Cada doença recebe cor +
+ícone em `src/lib/diseaseTheme.ts`.
+
 ## Melhorias futuras / pendências
 
 ### Email automático do Diário de Dor (quando houver domínio próprio)
