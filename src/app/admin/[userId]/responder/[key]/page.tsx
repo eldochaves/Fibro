@@ -7,6 +7,8 @@ import { QuestionarioForm } from "@/app/questionario/QuestionarioForm";
 import { FiqrForm } from "@/app/fiqr/FiqrForm";
 import { CsiForm } from "@/app/csi/CsiForm";
 import { PcsForm } from "@/app/pcs/PcsForm";
+import { WomacForm } from "@/app/womac/WomacForm";
+import { EvaForm } from "@/app/eva/EvaForm";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +71,22 @@ export default async function AdminResponderPage({
               {def.name}
             </h1>
             <PcsForm targetUserId={userId} />
+          </>
+        )}
+        {key === "womac" && (
+          <>
+            <h1 className="mb-4 font-display text-2xl font-semibold text-navy-800">
+              {def.name}
+            </h1>
+            <WomacForm targetUserId={userId} />
+          </>
+        )}
+        {key === "eva" && (
+          <>
+            <h1 className="mb-4 font-display text-2xl font-semibold text-navy-800">
+              {def.name}
+            </h1>
+            <EvaForm targetUserId={userId} />
           </>
         )}
       </main>

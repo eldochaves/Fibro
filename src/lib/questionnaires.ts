@@ -96,6 +96,31 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     indexLabel: "PCS",
     maxScore: 52,
   },
+  {
+    key: "womac",
+    name: "Osteoartrite — WOMAC",
+    short: "Osteoartrite · WOMAC",
+    description:
+      "Dor, rigidez e função física na osteoartrite de joelho e quadril.",
+    path: "/womac",
+    icon: "🦵",
+    diseases: ["osteoartrite"],
+    storage: "responses",
+    indexLabel: "WOMAC",
+    maxScore: 96,
+  },
+  {
+    key: "eva",
+    name: "Dor — Escala EVA (0–10)",
+    short: "Dor · EVA",
+    description: "Intensidade da dor de 0 (sem dor) a 10 (pior dor).",
+    path: "/eva",
+    icon: "📏",
+    diseases: ["osteoartrite"],
+    storage: "responses",
+    indexLabel: "EVA",
+    maxScore: 10,
+  },
 ];
 
 export const QUESTIONNAIRE_BY_KEY: Record<string, QuestionnaireDef> =

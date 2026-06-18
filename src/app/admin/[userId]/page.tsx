@@ -56,6 +56,8 @@ function summaryLine(key: string, s: Record<string, unknown> | null): string {
       (s.category ? ` · ${s.category}` : "") +
       (s.clinical ? " · ≥30 (relevante)" : "")
     );
+  if (key === "womac")
+    return `Dor ${s.pain}/20 · Rigidez ${s.stiffness}/8 · Função ${s.function}/68`;
   if (typeof s.category === "string") return s.category;
   return "";
 }

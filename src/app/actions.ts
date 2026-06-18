@@ -15,6 +15,8 @@ import {
 import { computeFiqr } from "@/lib/fiqr";
 import { computeCsi } from "@/lib/csi";
 import { computePcs } from "@/lib/pcs";
+import { computeWomac } from "@/lib/womac";
+import { computeEva } from "@/lib/eva";
 
 /** Salva uma avaliação ACR 2016 para o usuário autenticado. */
 export async function saveAssessment(answers: FibroAnswers) {
@@ -386,6 +388,26 @@ export async function adminSavePcs(
   });
 }
 
+export async function adminSaveWomac(
+  userId: string,
+  answers: Record<string, number>
+) {
+  const r = computeWomac(answers);
+  return adminSaveResponse(userId, "womac", answers, r.total, {
+    pain: r.pain,
+    stiffness: r.stiffness,
+    function: r.function,
+  });
+}
+
+export async function adminSaveEva(
+  userId: string,
+  answers: { eva: number }
+) {
+  const r = computeEva(answers);
+  return adminSaveResponse(userId, "eva", answers as Record<string, number>, r.total, {});
+}
+
 /**
  * Médico exclui um paciente por completo (conta + dados).
  * Usa a SERVICE ROLE KEY para remover a conta em auth.users; as tabelas
@@ -662,6 +684,46 @@ export async function savePcs(answers: Record<string, number>) {
   if (error) return { ok: false as const, error: error.message };
   revalidatePath("/pcs");
   return { ok: true as const, result };
+}
+
+/** Paciente salva uma resposta do WOMAC. */
+export async function saveWomac(answers: Record<string, number>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const r = computeWomac(answers);
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: "womac",
+    answers,
+    score: r.total,
+    summary: { pain: r.pain, stiffness: r.stiffness, function: r.function },
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/womac");
+  return { ok: true as const, result: r };
+}
+
+/** Paciente salva uma resposta da EVA de dor. */
+export async function saveEva(answers: { eva: number }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const r = computeEva(answers);
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: "eva",
+    answers,
+    score: r.total,
+    summary: {},
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/eva");
+  return { ok: true as const, result: r };
 }
 
 /** Apaga uma resposta de questionário (paciente: as próprias; médico: qualquer). */
