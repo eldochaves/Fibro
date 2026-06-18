@@ -8,6 +8,7 @@
  *   1–4 leve · 5–7 moderado · 8–10 grave · 11–13 muito grave · ≥14 extremo
  */
 import type { ScoredDef, ScoredSection, ScoredCategory } from "@/lib/scored";
+import { FIHOA } from "@/lib/fihoa";
 
 const CATEGORIES: ScoredCategory[] = [
   { max: 0, label: "Sem acometimento" },
@@ -170,4 +171,5 @@ export const LEQUESNE_HIP: ScoredDef = {
 export const SCORED_DEFS: Record<string, ScoredDef> = {
   lequesne_joelho: LEQUESNE_KNEE,
   lequesne_quadril: LEQUESNE_HIP,
+  fihoa: FIHOA,
 };
