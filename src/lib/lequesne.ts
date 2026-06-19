@@ -12,6 +12,7 @@ import { FIHOA } from "@/lib/fihoa";
 import { AUSCAN } from "@/lib/auscan";
 import { ODI } from "@/lib/odi";
 import { STARTBACK } from "@/lib/startback";
+import { TENDINITE_SCORED } from "@/lib/tendinites";
 
 const CATEGORIES: ScoredCategory[] = [
   { max: 0, label: "Sem acometimento" },
@@ -178,4 +179,5 @@ export const SCORED_DEFS: Record<string, ScoredDef> = {
   auscan: AUSCAN,
   odi: ODI,
   startback: STARTBACK,
+  ...TENDINITE_SCORED,
 };

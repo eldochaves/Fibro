@@ -11,6 +11,12 @@ import {
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { saveScored, adminSaveScored } from "@/app/actions";
 import { PatientSubmitted } from "@/components/PatientSubmitted";
+import { scaleColor } from "@/lib/scaleColor";
+
+/** Pergunta com 11 opções numéricas (0..10) → renderiza como grade/escala. */
+function isNumericScale(opts: { label: string }[]): boolean {
+  return opts.length === 11 && opts.every((o) => /^\d+$/.test(o.label));
+}
 
 export function ScoredChoiceForm({
   questionnaireKey,
@@ -104,6 +110,37 @@ export function ScoredChoiceForm({
                     {q.label}
                   </div>
                 )}
+                {isNumericScale(q.options) ? (
+                  <div className="grid grid-cols-11 gap-1">
+                    {q.options.map((opt, idx) => {
+                      const active = answers[q.id] === idx;
+                      const color = scaleColor(idx, 10);
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() =>
+                            setAnswers((a) => ({ ...a, [q.id]: idx }))
+                          }
+                          aria-pressed={active}
+                          aria-label={`${q.label}: ${opt.label}`}
+                          className="rounded-md border py-2 text-xs font-bold transition"
+                          style={
+                            active
+                              ? {
+                                  backgroundColor: color,
+                                  borderColor: color,
+                                  color: "#fff",
+                                }
+                              : { borderColor: "#dbe6ee", color }
+                          }
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
                 <div className="space-y-1.5">
                   {q.options.map((opt, idx) => {
                     const active = answers[q.id] === idx;
@@ -137,6 +174,7 @@ export function ScoredChoiceForm({
                     );
                   })}
                 </div>
+                )}
               </div>
             ))}
           </div>

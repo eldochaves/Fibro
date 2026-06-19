@@ -98,6 +98,17 @@ export const DISEASE_THEME: Record<string, DiseaseTheme> = {
       "border-cyan-500 bg-cyan-100 text-cyan-800 ring-1 ring-cyan-400",
     accentBorder: "border-cyan-500",
   },
+  tendinites: {
+    icon: "🎾",
+    container:
+      "rounded-2xl border border-purple-200 border-l-4 border-l-purple-500 bg-purple-50/40 p-4",
+    iconWrap: "bg-purple-100 text-purple-700",
+    title: "text-purple-900",
+    countBadge: "bg-purple-100 text-purple-700",
+    chipActive:
+      "border-purple-500 bg-purple-100 text-purple-800 ring-1 ring-purple-400",
+    accentBorder: "border-purple-500",
+  },
   bertolotti: {
     icon: "🩻",
     container:

@@ -88,4 +88,8 @@ export const DISEASE_INFO: Record<string, DiseaseInfo> = {
     summary:
       "A síndrome de Bertolotti está relacionada a uma variação na última vértebra da coluna lombar que, em algumas pessoas, causa dor nas costas. O acompanhamento define o melhor tratamento, que costuma começar por fisioterapia, exercícios e controle da dor.",
   },
+  tendinites: {
+    summary:
+      "As tendinites (ou tendinopatias) são a irritação ou o desgaste de um tendão — a estrutura que liga o músculo ao osso —, causando dor e, às vezes, perda de força no movimento. São comuns no ombro, cotovelo, punho, joelho e tornozelo. O tratamento costuma combinar repouso relativo, fisioterapia, fortalecimento progressivo e controle da dor.",
+  },
 };

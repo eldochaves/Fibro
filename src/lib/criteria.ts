@@ -154,9 +154,89 @@ const DELPHI_MIOFASCIAL: CriterionDef = {
     "Consenso Delphi 2017: banda tensa, ponto hipersensível e dor referida/reconhecida. A confirmação clínica depende do exame por profissional experiente.",
 };
 
+const TEND_FINKELSTEIN: CriterionDef = {
+  key: "tend_finkelstein",
+  name: "De Quervain — testes de exame",
+  intro:
+    "Apoio ao diagnóstico clínico da tenossinovite de De Quervain. Com dor na borda radial do punho, um teste positivo reforça a suspeita.",
+  gate: [
+    { id: "g_dor", label: "Dor na borda radial do punho / base do polegar" },
+  ],
+  items: [
+    {
+      id: "finkelstein",
+      label:
+        "Teste de Finkelstein positivo (dor ao desviar o punho para o lado do dedo mínimo com o polegar flexionado)",
+    },
+    { id: "eichhoff", label: "Teste de Eichhoff positivo" },
+  ],
+  threshold: 1,
+  metLabel: "Compatível com tenossinovite de De Quervain",
+  notMetLabel: "Testes não sugestivos",
+  note: "Apoio clínico; a confirmação depende do exame por profissional.",
+};
+
+const TEND_COZEN: CriterionDef = {
+  key: "tend_cozen",
+  name: "Epicondilite lateral — testes de exame",
+  intro:
+    "Apoio ao diagnóstico clínico da epicondilite lateral (cotovelo de tenista).",
+  gate: [
+    { id: "g_dor", label: "Dor no epicôndilo lateral (face externa do cotovelo)" },
+  ],
+  items: [
+    { id: "cozen", label: "Teste de Cozen positivo (dor à extensão resistida do punho)" },
+    { id: "mill", label: "Teste de Mill positivo" },
+    { id: "maudsley", label: "Teste de Maudsley (dedo médio) positivo" },
+  ],
+  threshold: 1,
+  metLabel: "Compatível com epicondilite lateral",
+  notMetLabel: "Testes não sugestivos",
+};
+
+const TEND_MEDIAL: CriterionDef = {
+  key: "tend_medial",
+  name: "Epicondilite medial — testes de exame",
+  intro:
+    "Apoio ao diagnóstico clínico da epicondilite medial (cotovelo de golfista).",
+  gate: [
+    { id: "g_dor", label: "Dor no epicôndilo medial (face interna do cotovelo)" },
+  ],
+  items: [
+    { id: "flexao", label: "Dor à flexão resistida do punho" },
+    { id: "pronacao", label: "Dor à pronação resistida do antebraço" },
+  ],
+  threshold: 1,
+  metLabel: "Compatível com epicondilite medial",
+  notMetLabel: "Testes não sugestivos",
+};
+
+const TEND_MANGUITO: CriterionDef = {
+  key: "tend_manguito",
+  name: "Manguito rotador — testes de exame",
+  intro:
+    "Apoio ao diagnóstico clínico de tendinopatia/síndrome do impacto do manguito rotador. Quanto mais testes positivos, maior a suspeita.",
+  gate: [
+    { id: "g_dor", label: "Dor no ombro, sobretudo ao elevar o braço ou à noite" },
+  ],
+  items: [
+    { id: "jobe", label: "Teste de Jobe (empty can) positivo" },
+    { id: "neer", label: "Sinal de Neer positivo" },
+    { id: "hawkins", label: "Teste de Hawkins-Kennedy positivo" },
+    { id: "patte", label: "Teste de Patte (rotação externa resistida) positivo" },
+  ],
+  threshold: 1,
+  metLabel: "Compatível com tendinopatia do manguito rotador",
+  notMetLabel: "Testes não sugestivos",
+};
+
 export const CRITERIA_DEFS: Record<string, CriterionDef> = {
   acr_joelho: ACR_KNEE,
   acr_maos: ACR_HANDS,
   eular_joelho: EULAR_KNEE,
   delphi_miofascial: DELPHI_MIOFASCIAL,
+  tend_finkelstein: TEND_FINKELSTEIN,
+  tend_cozen: TEND_COZEN,
+  tend_medial: TEND_MEDIAL,
+  tend_manguito: TEND_MANGUITO,
 };
