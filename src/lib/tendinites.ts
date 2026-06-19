@@ -236,6 +236,42 @@ export const VISA_A: ScoredDef = {
   ],
 };
 
+// ---------------------------------------------------------------------
+// Dedo em gatilho — classificação de Quinnell (grau 0–IV). Maior = pior.
+// ---------------------------------------------------------------------
+export const QUINNELL: ScoredDef = {
+  key: "quinnell",
+  name: "Dedo em gatilho — classificação (Quinnell)",
+  intro: "Escolha o grau que melhor descreve o dedo afetado.",
+  maxScore: 4,
+  sections: [
+    {
+      title: "Grau do dedo em gatilho",
+      questions: [
+        {
+          id: "grade",
+          label: "",
+          options: [
+            { label: "0 — Movimento normal", value: 0 },
+            { label: "I — Movimento irregular do dedo", value: 1 },
+            {
+              label:
+                "II — Travamento/estalido que o paciente corrige sozinho (ativamente)",
+              value: 2,
+            },
+            {
+              label:
+                "III — Travamento que só corrige com a outra mão (passivamente)",
+              value: 3,
+            },
+            { label: "IV — Dedo fixo, não corrige", value: 4 },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
 /** Registro dos questionários pontuados de tendinite. */
 export const TENDINITE_SCORED: Record<string, ScoredDef> = {
   quickdash: QUICKDASH,
@@ -243,4 +279,5 @@ export const TENDINITE_SCORED: Record<string, ScoredDef> = {
   prtee: PRTEE,
   visa_p: VISA_P,
   visa_a: VISA_A,
+  quinnell: QUINNELL,
 };

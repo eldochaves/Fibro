@@ -230,6 +230,27 @@ const TEND_MANGUITO: CriterionDef = {
   notMetLabel: "Testes não sugestivos",
 };
 
+const TEND_CALCARIA: CriterionDef = {
+  key: "tend_calcaria",
+  name: "Tendinite calcária — apoio diagnóstico",
+  intro:
+    "A tendinite calcária do ombro é confirmada por imagem. Este checklist apoia a suspeita clínica.",
+  gate: [{ id: "g_dor", label: "Dor no ombro" }],
+  items: [
+    {
+      id: "imagem",
+      label:
+        "Calcificação no tendão visível em exame de imagem (raio-X ou ultrassom)",
+    },
+    { id: "noturna", label: "Dor noturna ou ao deitar sobre o ombro" },
+    { id: "impacto", label: "Dor/limitação ao elevar o braço (sinais de impacto)" },
+  ],
+  threshold: 1,
+  metLabel: "Compatível com tendinite calcária (confirmar pela imagem)",
+  notMetLabel: "Pouco sugestivo",
+  note: "A calcificação no exame de imagem é o achado-chave.",
+};
+
 export const CRITERIA_DEFS: Record<string, CriterionDef> = {
   acr_joelho: ACR_KNEE,
   acr_maos: ACR_HANDS,
@@ -239,4 +260,5 @@ export const CRITERIA_DEFS: Record<string, CriterionDef> = {
   tend_cozen: TEND_COZEN,
   tend_medial: TEND_MEDIAL,
   tend_manguito: TEND_MANGUITO,
+  tend_calcaria: TEND_CALCARIA,
 };
