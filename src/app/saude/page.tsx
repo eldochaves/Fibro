@@ -4,18 +4,40 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getContext, isProfileComplete } from "@/lib/session";
 import { DISEASE_LABEL } from "@/lib/questionnaires";
-import { DISEASE_INFO, GENERAL_SOURCES } from "@/lib/diseaseInfo";
+import {
+  DISEASE_INFO,
+  GENERAL_SOURCES,
+  type DiseaseInfo,
+  type DiseaseResource,
+} from "@/lib/diseaseInfo";
 import { diseaseTheme } from "@/lib/diseaseTheme";
 
 export const dynamic = "force-dynamic";
 
 export default async function SaudePage() {
-  const { user, isAdmin, profile } = await getContext();
+  const { supabase, user, isAdmin, profile } = await getContext();
   if (isAdmin) redirect("/admin");
   if (!isProfileComplete(profile)) redirect("/perfil");
 
   const diseases = (profile?.diseases as string[]) ?? [];
-  const known = diseases.filter((d) => DISEASE_INFO[d]);
+
+  // Conteúdo editado pelo médico (banco) tem prioridade sobre o padrão do código.
+  const { data: rows } = await supabase
+    .from("disease_info")
+    .select("disease_key, summary, resources");
+  const dbMap = new Map(
+    (rows ?? []).map((r) => [
+      r.disease_key as string,
+      {
+        summary: (r.summary as string) ?? "",
+        resources: (r.resources as DiseaseResource[]) ?? [],
+      } as DiseaseInfo,
+    ])
+  );
+  const infoFor = (key: string): DiseaseInfo | undefined =>
+    dbMap.get(key) ?? DISEASE_INFO[key];
+
+  const known = diseases.filter((d) => infoFor(d)?.summary);
 
   return (
     <>
@@ -48,7 +70,7 @@ export default async function SaudePage() {
         ) : (
           <div className="mt-6 space-y-4">
             {known.map((d) => {
-              const info = DISEASE_INFO[d];
+              const info = infoFor(d)!;
               const theme = diseaseTheme(d);
               return (
                 <section key={d} className={theme.container}>

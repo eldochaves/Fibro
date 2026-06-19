@@ -202,3 +202,21 @@ alter table public.questionnaire_responses
 -- ---------------------------------------------------------------------
 alter table public.profiles
   add column if not exists questionnaire_dismissed jsonb not null default '{}';
+
+-- ---------------------------------------------------------------------
+-- 013 — Conteúdo educativo por doença (editável pelo médico)
+-- ---------------------------------------------------------------------
+create table if not exists public.disease_info (
+  disease_key text primary key,
+  summary text,
+  resources jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.disease_info enable row level security;
+drop policy if exists "disease_info_read" on public.disease_info;
+create policy "disease_info_read"
+  on public.disease_info for select using (true);
+drop policy if exists "disease_info_admin" on public.disease_info;
+create policy "disease_info_admin"
+  on public.disease_info for all
+  using (public.is_admin()) with check (public.is_admin());

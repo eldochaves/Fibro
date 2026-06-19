@@ -293,3 +293,21 @@ create policy "avatars_user_delete"
     bucket_id = 'avatars'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- =====================================================================
+--  Conteúdo educativo por doença (editável pelo médico) — exibido em /saude
+-- =====================================================================
+create table if not exists public.disease_info (
+  disease_key text primary key,
+  summary text,
+  resources jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.disease_info enable row level security;
+drop policy if exists "disease_info_read" on public.disease_info;
+create policy "disease_info_read"
+  on public.disease_info for select using (true);
+drop policy if exists "disease_info_admin" on public.disease_info;
+create policy "disease_info_admin"
+  on public.disease_info for all
+  using (public.is_admin()) with check (public.is_admin());

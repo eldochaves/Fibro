@@ -190,6 +190,9 @@ export default async function AdminPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+            <Link href="/admin/saude" className="btn-outline">
+              📚 Informações ao paciente
+            </Link>
             <Link href="/admin/novo" className="btn-outline">
               + Novo paciente
             </Link>

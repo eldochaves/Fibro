@@ -24,6 +24,7 @@ import { computeCriteria, CRITERIA_DEFS } from "@/lib/criteria";
 import { computeLikert } from "@/lib/likert";
 import { LIKERT_DEFS } from "@/lib/koos";
 import { QUESTIONNAIRE_BY_KEY } from "@/lib/questionnaires";
+import type { DiseaseResource } from "@/lib/diseaseInfo";
 
 /** Salva uma avaliação ACR 2016 para o usuário autenticado. */
 export async function saveAssessment(answers: FibroAnswers) {
@@ -146,6 +147,35 @@ export async function adminDeleteAssessment(assessmentId: string, userId: string
   if (error) return { ok: false as const, error: error.message };
   revalidatePath(`/admin/${userId}`);
   revalidatePath("/admin");
+  return { ok: true as const };
+}
+
+/** Médico edita o conteúdo educativo (resumo + links) de uma doença. */
+export async function adminSaveDiseaseInfo(
+  diseaseKey: string,
+  data: { summary: string; resources: DiseaseResource[] }
+) {
+  const supabase = await requireAdmin();
+  const resources = (data.resources ?? [])
+    .map((r) => ({
+      title: (r.title ?? "").trim(),
+      source: (r.source ?? "").trim(),
+      url: (r.url ?? "").trim(),
+    }))
+    .filter((r) => r.title && r.url);
+
+  const { error } = await supabase.from("disease_info").upsert(
+    {
+      disease_key: diseaseKey,
+      summary: data.summary.trim(),
+      resources,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "disease_key" }
+  );
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/saude");
+  revalidatePath("/admin/saude");
   return { ok: true as const };
 }
 
