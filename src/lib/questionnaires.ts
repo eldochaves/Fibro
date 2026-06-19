@@ -357,6 +357,21 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     region: "tend_calcaria",
   },
   {
+    key: "infiltracao_tend",
+    name: "Feedback pós-infiltração",
+    short: "Tendinites · Pós-infiltração",
+    description:
+      "Retorno do paciente após a infiltração periarticular (resposta, satisfação e depoimento).",
+    path: "/infiltracao",
+    icon: "💉",
+    diseases: ["tendinites"],
+    storage: "responses",
+    indexLabel: "Satisfação",
+    maxScore: 10,
+    kind: "avaliacao",
+    higherIsBetter: true,
+  },
+  {
     key: "quinnell",
     name: "Dedo em gatilho — classificação (Quinnell)",
     short: "Tendinites · Dedo em gatilho",

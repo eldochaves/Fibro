@@ -18,6 +18,7 @@ import { computePcs } from "@/lib/pcs";
 import { computeWomac } from "@/lib/womac";
 import { computeEva } from "@/lib/eva";
 import { computeBpi } from "@/lib/bpi";
+import { infiltracaoSummary, type InfiltracaoAnswers } from "@/lib/infiltracao";
 import { computeScored } from "@/lib/scored";
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { computeCriteria, CRITERIA_DEFS } from "@/lib/criteria";
@@ -821,6 +822,40 @@ export async function saveBpi(answers: Record<string, number>) {
   if (error) return { ok: false as const, error: error.message };
   revalidatePath("/bpi");
   return { ok: true as const, result: r };
+}
+
+/** Paciente envia o feedback pós-infiltração. */
+export async function saveInfiltracao(answers: InfiltracaoAnswers) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const s = infiltracaoSummary(answers);
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: "infiltracao_tend",
+    answers,
+    score: s.satisfacao,
+    summary: s,
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/infiltracao");
+  return { ok: true as const };
+}
+
+export async function adminSaveInfiltracao(
+  userId: string,
+  answers: InfiltracaoAnswers
+) {
+  const s = infiltracaoSummary(answers);
+  return adminSaveResponse(
+    userId,
+    "infiltracao_tend",
+    answers as Record<string, unknown>,
+    s.satisfacao,
+    s
+  );
 }
 
 /** Paciente salva uma resposta de questionário "por escolhas pontuadas" (Lequesne). */

@@ -69,6 +69,19 @@ function summaryLine(key: string, s: Record<string, unknown> | null): string {
     return `Dor ${s.pain}/20 · Rigidez ${s.stiffness}/8 · Função ${s.function}/68`;
   if (key === "bpi")
     return `Gravidade ${s.severity}/10 · Interferência ${s.interference}/10`;
+  if (key === "infiltracao_tend") {
+    const parts: string[] = [];
+    if (s.pgic) parts.push(`Evolução: ${s.pgic}`);
+    parts.push(`Satisfação ${s.satisfacao}/10`);
+    if (s.recomenda) parts.push(`Recomenda: ${s.recomenda}`);
+    if (s.depoimento) parts.push(`“${s.depoimento}”`);
+    parts.push(
+      s.consent
+        ? `✔ autoriza compartilhar${s.consent_nome ? " (com nome)" : " (anônimo)"}`
+        : "não autoriza compartilhar"
+    );
+    return parts.join(" · ");
+  }
   if (Array.isArray(s.subscales))
     return (s.subscales as { title: string; score: number }[])
       .map((x) => `${x.title} ${x.score}`)
