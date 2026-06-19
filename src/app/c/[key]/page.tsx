@@ -32,19 +32,27 @@ export default async function ConvitePage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, cpf, birth_date, questionnaires, questionnaire_requests")
+    .select(
+      "full_name, cpf, birth_date, diseases, questionnaires, questionnaire_requests"
+    )
     .eq("id", user.id)
     .maybeSingle();
 
   // Libera o questionário e reabre (mesmo se já respondido antes), garantindo
-  // que ele abra agora para este paciente.
+  // que ele abra agora para este paciente. Também marca a(s) doença(s)
+  // associada(s) ao questionário do convite (o médico já indicou ao convidar).
   const current: string[] = profile?.questionnaires ?? [];
   const requests: Record<string, string> =
     (profile?.questionnaire_requests as Record<string, string>) ?? {};
   requests[key] = new Date().toISOString();
+  const currentDiseases: string[] = profile?.diseases ?? [];
+  const nextDiseases = Array.from(
+    new Set([...currentDiseases, ...def.diseases])
+  );
   await supabase
     .from("profiles")
     .update({
+      diseases: nextDiseases,
       questionnaires: current.includes(key) ? current : [...current, key],
       questionnaire_requests: requests,
     })
