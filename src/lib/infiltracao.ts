@@ -2,10 +2,11 @@
  * Feedback do paciente após INFILTRAÇÃO PERIARTICULAR (tendinites).
  * Protocolo do Dr. Eldo: lidocaína + betametasona.
  *
- * Coleta: impressão global de melhora (PGIC), dor atual, tempo até melhorar,
- * satisfação, conforto durante a aplicação, efeitos indesejados, se
- * recomendaria, um DEPOIMENTO em texto livre e a AUTORIZAÇÃO para que a
- * opinião seja compartilhada (anônima) com outros pacientes no futuro.
+ * Quando há mais de uma infiltração, é gerado UM feedback (uma resposta) por
+ * LOCAL infiltrado — cada local é explicado em linguagem simples. Perguntas
+ * por local: impressão de melhora (PGIC), dor atual, tempo até melhorar,
+ * satisfação, conforto na aplicação e efeitos. Perguntas gerais (uma vez):
+ * recomendaria, depoimento livre e autorização para compartilhar.
  */
 export const PGIC_OPTIONS = [
   "Muito melhor",
@@ -25,38 +26,53 @@ export const INICIO_OPTIONS = [
 ];
 export const RECOMENDA_OPTIONS = ["Sim", "Talvez", "Não"];
 
-export interface InfiltracaoAnswers {
-  pgic?: number; // índice em PGIC_OPTIONS
-  dor?: number; // 0–10 (intensidade da dor agora)
-  inicio?: number; // índice em INICIO_OPTIONS
+/** Respostas de UM local infiltrado. */
+export interface SiteAnswer {
+  site: string; // chave do subtipo (ex.: manguito_rotador)
+  pgic?: number;
+  dor?: number; // 0–10
+  inicio?: number;
   satisfacao?: number; // 0–10
-  conforto?: number; // 0–10 (dor/desconforto durante a aplicação)
-  efeito?: boolean; // teve efeito indesejado?
-  efeito_desc?: string; // descrição do efeito (se houve)
-  recomenda?: number; // índice em RECOMENDA_OPTIONS
-  depoimento?: string; // texto livre
-  sites?: string[]; // locais infiltrados (chaves de subtipo), confirmados pelo paciente
-  consent?: boolean; // autoriza compartilhar (anônimo)
-  consent_nome?: boolean; // autoriza usar o primeiro nome
+  conforto?: number; // 0–10 (desconforto na aplicação)
+  efeito?: boolean;
+  efeito_desc?: string;
 }
 
-/** Itens obrigatórios para enviar (texto e autorizações são opcionais). */
+export interface InfiltracaoAnswers {
+  perSite?: SiteAnswer[];
+  // Gerais (uma vez)
+  recomenda?: number;
+  depoimento?: string;
+  consent?: boolean;
+  consent_nome?: boolean;
+}
+
+/** Completo: pelo menos um local, recomendação, e cada local com o essencial. */
 export function isInfiltracaoComplete(a: InfiltracaoAnswers): boolean {
-  return [a.pgic, a.dor, a.inicio, a.satisfacao, a.recomenda].every(
-    (v) => typeof v === "number"
+  const sites = a.perSite ?? [];
+  if (sites.length === 0) return false;
+  if (typeof a.recomenda !== "number") return false;
+  return sites.every((s) =>
+    [s.pgic, s.dor, s.inicio, s.satisfacao].every((v) => typeof v === "number")
   );
 }
 
-export function infiltracaoSummary(a: InfiltracaoAnswers) {
+/** Resumo de UMA resposta (um local), guardado em questionnaire_responses. */
+export function siteSummary(
+  siteLabel: string,
+  s: SiteAnswer,
+  a: InfiltracaoAnswers
+) {
   return {
-    satisfacao: a.satisfacao ?? 0,
-    dor: a.dor ?? 0,
-    efeito: a.efeito === true,
-    efeito_desc: a.efeito === true ? (a.efeito_desc ?? "").trim() : "",
-    pgic: typeof a.pgic === "number" ? PGIC_OPTIONS[a.pgic] : null,
+    site: siteLabel,
+    satisfacao: s.satisfacao ?? 0,
+    dor: s.dor ?? 0,
+    pgic: typeof s.pgic === "number" ? PGIC_OPTIONS[s.pgic] : null,
+    inicio: typeof s.inicio === "number" ? INICIO_OPTIONS[s.inicio] : null,
+    efeito: s.efeito === true,
+    efeito_desc: s.efeito === true ? (s.efeito_desc ?? "").trim() : "",
     recomenda:
       typeof a.recomenda === "number" ? RECOMENDA_OPTIONS[a.recomenda] : null,
-    inicio: typeof a.inicio === "number" ? INICIO_OPTIONS[a.inicio] : null,
     consent: a.consent === true,
     consent_nome: a.consent_nome === true,
     depoimento: (a.depoimento ?? "").trim(),

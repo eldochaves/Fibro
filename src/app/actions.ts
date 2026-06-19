@@ -18,7 +18,7 @@ import { computePcs } from "@/lib/pcs";
 import { computeWomac } from "@/lib/womac";
 import { computeEva } from "@/lib/eva";
 import { computeBpi } from "@/lib/bpi";
-import { infiltracaoSummary, type InfiltracaoAnswers } from "@/lib/infiltracao";
+import { siteSummary, type InfiltracaoAnswers } from "@/lib/infiltracao";
 import { computeScored } from "@/lib/scored";
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { computeCriteria, CRITERIA_DEFS } from "@/lib/criteria";
@@ -824,22 +824,6 @@ export async function saveBpi(answers: Record<string, number>) {
   return { ok: true as const, result: r };
 }
 
-async function infiltracaoSiteKeys(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string
-): Promise<string[]> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("infiltracao_sites")
-    .eq("id", userId)
-    .maybeSingle();
-  return (data?.infiltracao_sites as string[]) ?? [];
-}
-
-function siteLabels(keys: string[]): string[] {
-  return keys.map((k) => REGION_LABEL[k] ?? k);
-}
-
 /** Médico encaminha o feedback de infiltração marcando os locais infiltrados. */
 export async function adminSendInfiltracao(userId: string, sites: string[]) {
   const supabase = await requireAdmin();
@@ -869,25 +853,41 @@ export async function adminSendInfiltracao(userId: string, sites: string[]) {
   return { ok: true as const };
 }
 
-/** Paciente envia o feedback pós-infiltração. */
+/** Monta uma linha de resposta por LOCAL infiltrado. */
+function infiltracaoRows(
+  userId: string,
+  a: InfiltracaoAnswers,
+  byDoctor: boolean
+) {
+  return (a.perSite ?? []).map((s) => ({
+    user_id: userId,
+    questionnaire_key: "infiltracao_tend",
+    answers: {
+      ...s,
+      recomenda: a.recomenda,
+      depoimento: a.depoimento,
+      consent: a.consent,
+      consent_nome: a.consent_nome,
+    },
+    score: s.satisfacao ?? 0,
+    summary: siteSummary(REGION_LABEL[s.site] ?? s.site, s, a),
+    by_doctor: byDoctor,
+  }));
+}
+
+/** Paciente envia o feedback pós-infiltração (uma resposta por local). */
 export async function saveInfiltracao(answers: InfiltracaoAnswers) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  const keys =
-    answers.sites && answers.sites.length > 0
-      ? answers.sites
-      : await infiltracaoSiteKeys(supabase, user.id);
-  const s = { ...infiltracaoSummary(answers), sites: siteLabels(keys) };
-  const { error } = await supabase.from("questionnaire_responses").insert({
-    user_id: user.id,
-    questionnaire_key: "infiltracao_tend",
-    answers,
-    score: s.satisfacao,
-    summary: s,
-  });
+  const rows = infiltracaoRows(user.id, answers, false);
+  if (rows.length === 0)
+    return { ok: false as const, error: "Selecione ao menos um local." };
+  const { error } = await supabase
+    .from("questionnaire_responses")
+    .insert(rows);
   if (error) return { ok: false as const, error: error.message };
   revalidatePath("/infiltracao");
   return { ok: true as const };
@@ -898,18 +898,15 @@ export async function adminSaveInfiltracao(
   answers: InfiltracaoAnswers
 ) {
   const supabase = await requireAdmin();
-  const keys =
-    answers.sites && answers.sites.length > 0
-      ? answers.sites
-      : await infiltracaoSiteKeys(supabase, userId);
-  const s = { ...infiltracaoSummary(answers), sites: siteLabels(keys) };
-  return adminSaveResponse(
-    userId,
-    "infiltracao_tend",
-    answers as Record<string, unknown>,
-    s.satisfacao,
-    s
-  );
+  const rows = infiltracaoRows(userId, answers, true);
+  if (rows.length === 0)
+    return { ok: false as const, error: "Selecione ao menos um local." };
+  const { error } = await supabase
+    .from("questionnaire_responses")
+    .insert(rows);
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/admin/${userId}`);
+  return { ok: true as const };
 }
 
 /** Paciente salva uma resposta de questionário "por escolhas pontuadas" (Lequesne). */

@@ -538,6 +538,22 @@ export const REGION_ORDER = [
   "tend_aquiles",
 ];
 
+/** Explicação em linguagem simples de cada local (para o paciente entender). */
+export const TENDINITE_DESC: Record<string, string> = {
+  manguito_rotador:
+    "Tendões do ombro que ajudam a levantar e girar o braço.",
+  tend_calcaria:
+    "Depósito de cálcio em um tendão do ombro, que causa dor.",
+  epicondilite_lateral:
+    "Tendões da parte de fora do cotovelo (conhecido como “cotovelo de tenista”).",
+  epicondilite_medial:
+    "Tendões da parte de dentro do cotovelo (conhecido como “cotovelo de golfista”).",
+  de_quervain: "Tendões do lado do polegar, na altura do punho.",
+  dedo_gatilho: "Tendão de um dedo da mão que trava ou estala ao dobrar.",
+  tend_patelar: "Tendão logo abaixo da rótula, na frente do joelho.",
+  tend_aquiles: "Tendão do calcanhar, atrás do tornozelo.",
+};
+
 /** Subtipos de tendinite (para marcar os locais infiltrados). */
 export const TENDINITE_SUBTYPES = [
   "manguito_rotador",
@@ -548,7 +564,7 @@ export const TENDINITE_SUBTYPES = [
   "dedo_gatilho",
   "tend_patelar",
   "tend_aquiles",
-].map((key) => ({ key, label: REGION_LABEL[key] }));
+].map((key) => ({ key, label: REGION_LABEL[key], desc: TENDINITE_DESC[key] }));
 
 export const CRITERION_TYPE_LABEL: Record<string, string> = {
   diagnostico: "Critério diagnóstico",

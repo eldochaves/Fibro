@@ -72,7 +72,8 @@ function summaryLine(key: string, s: Record<string, unknown> | null): string {
     return `Gravidade ${s.severity}/10 · Interferência ${s.interference}/10`;
   if (key === "infiltracao_tend") {
     const parts: string[] = [];
-    if (Array.isArray(s.sites) && s.sites.length > 0)
+    if (s.site) parts.push(`Local: ${s.site}`);
+    else if (Array.isArray(s.sites) && s.sites.length > 0)
       parts.push(`Locais: ${(s.sites as string[]).join(", ")}`);
     if (s.pgic) parts.push(`Evolução: ${s.pgic}`);
     parts.push(`Satisfação ${s.satisfacao}/10`);
