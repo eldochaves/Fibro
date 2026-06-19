@@ -151,13 +151,22 @@ export default async function InicioPage() {
         )}
 
         {/* Atalhos secundários */}
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <div className="mt-8 grid gap-3 sm:grid-cols-3">
           <Link
             href="/historico"
             className="card-flat flex items-center justify-between hover:border-teal-300"
           >
             <span className="text-sm font-medium text-navy-700">
-              📊 Meu histórico
+              📊 Minha evolução
+            </span>
+            <span className="text-teal-600">→</span>
+          </Link>
+          <Link
+            href="/saude"
+            className="card-flat flex items-center justify-between hover:border-teal-300"
+          >
+            <span className="text-sm font-medium text-navy-700">
+              📚 Sobre minha saúde
             </span>
             <span className="text-teal-600">→</span>
           </Link>
