@@ -321,6 +321,7 @@ export function QuestionarioForm({ targetUserId }: { targetUserId?: string }) {
             </>
           ) : !targetUserId ? (
             <PatientSubmitted
+              score={<>Pontuação: {result.wpi + result.sss}/31</>}
               onBack={() => {
                 router.push("/inicio");
                 router.refresh();

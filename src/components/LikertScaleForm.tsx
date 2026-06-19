@@ -47,6 +47,7 @@ export function LikertScaleForm({
     if (!targetUserId)
       return (
         <PatientSubmitted
+          score={<>Pontuação: {result.score}/100</>}
           onBack={() => {
             router.push("/inicio");
             router.refresh();

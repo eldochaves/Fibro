@@ -4,14 +4,23 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getContext, isProfileComplete } from "@/lib/session";
 import { QUESTIONNAIRE_BY_KEY } from "@/lib/questionnaires";
+import { SeverityChart, type ChartPoint } from "@/components/SeverityChart";
 
 export const dynamic = "force-dynamic";
 
-interface Entry {
+interface Point {
   id: string;
-  name: string;
   date: string;
+  score: number;
   byDoctor: boolean;
+}
+interface Group {
+  key: string;
+  name: string;
+  maxScore: number;
+  hasNumber: boolean;
+  points: Point[]; // mais recente primeiro
+  latest: number;
 }
 
 export default async function HistoricoPage() {
@@ -22,30 +31,54 @@ export default async function HistoricoPage() {
   const [{ data: assessments }, { data: responses }] = await Promise.all([
     supabase
       .from("assessments")
-      .select("id, created_at, by_doctor")
+      .select("id, created_at, severity_score, by_doctor")
       .order("created_at", { ascending: false }),
     supabase
       .from("questionnaire_responses")
-      .select("id, questionnaire_key, created_at, by_doctor")
+      .select("id, questionnaire_key, created_at, score, by_doctor")
       .order("created_at", { ascending: false }),
   ]);
 
-  const entries: Entry[] = [
-    ...(assessments ?? []).map((a) => ({
+  // Agrupa por questionário
+  const map = new Map<string, Point[]>();
+  for (const a of assessments ?? []) {
+    if (!map.has("acr2016")) map.set("acr2016", []);
+    map.get("acr2016")!.push({
       id: a.id,
-      name:
-        QUESTIONNAIRE_BY_KEY["acr2016"]?.name ?? "Avaliação de Fibromialgia",
-      date: a.created_at as string,
+      date: a.created_at,
+      score: a.severity_score,
       byDoctor: a.by_doctor === true,
-    })),
-    ...(responses ?? []).map((r) => ({
+    });
+  }
+  for (const r of responses ?? []) {
+    if (!map.has(r.questionnaire_key)) map.set(r.questionnaire_key, []);
+    map.get(r.questionnaire_key)!.push({
       id: r.id,
-      name: QUESTIONNAIRE_BY_KEY[r.questionnaire_key]?.name ?? "Questionário",
-      date: r.created_at as string,
+      date: r.created_at,
+      score: Number(r.score ?? 0),
       byDoctor: r.by_doctor === true,
-    })),
-  ].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+    });
+  }
 
+  const groups: Group[] = [];
+  for (const [key, points] of map) {
+    const def = QUESTIONNAIRE_BY_KEY[key];
+    const name = def?.name ?? "Questionário";
+    const maxScore = key === "acr2016" ? 31 : def?.maxScore ?? 100;
+    // Critérios não mostram número (seria subsídio para autoavaliação)
+    const hasNumber = key === "acr2016" || def?.kind === "avaliacao";
+    groups.push({
+      key,
+      name,
+      maxScore,
+      hasNumber,
+      points,
+      latest: Date.parse(points[0]?.date ?? "") || 0,
+    });
+  }
+  groups.sort((a, b) => b.latest - a.latest);
+
+  const total = groups.reduce((n, g) => n + g.points.length, 0);
   const firstName = profile?.full_name?.split(" ")[0] ?? "";
 
   return (
@@ -60,11 +93,11 @@ export default async function HistoricoPage() {
         </Link>
 
         <h1 className="font-display text-2xl font-semibold text-navy-800 sm:text-3xl">
-          Minhas respostas
+          Minha evolução
         </h1>
         <p className="mt-1 text-base text-navy-500">
-          Aqui ficam registradas as suas respostas. Quem analisa os resultados é
-          o Dr. Eldo Chaves, no seu acompanhamento. 🌿
+          Acompanhe suas respostas ao longo do tempo. Os números ajudam a ver a
+          evolução — quem interpreta os resultados é o Dr. Eldo Chaves. 🌿
         </p>
 
         {profile?.pain_diary_enabled && (
@@ -84,7 +117,7 @@ export default async function HistoricoPage() {
           </Link>
         )}
 
-        {entries.length === 0 ? (
+        {groups.length === 0 ? (
           <div className="card mt-6 text-center">
             <div className="text-3xl">📝</div>
             <p className="mt-2 text-navy-500">
@@ -99,30 +132,56 @@ export default async function HistoricoPage() {
           <>
             <div className="mt-6 rounded-2xl border border-teal-100 bg-teal-50/60 px-4 py-3 text-sm text-navy-700">
               👏 {firstName ? `${firstName}, você` : "Você"} já enviou{" "}
-              <strong>{entries.length}</strong>{" "}
-              {entries.length === 1 ? "resposta" : "respostas"}. Obrigado por
-              cuidar da sua saúde junto com a gente!
+              <strong>{total}</strong> {total === 1 ? "resposta" : "respostas"}.
+              Obrigado por cuidar da sua saúde junto com a gente!
             </div>
 
-            <ul className="mt-4 space-y-3">
-              {entries.map((e) => (
-                <li
-                  key={e.id}
-                  className="card flex items-center justify-between gap-3"
-                >
-                  <div>
-                    <div className="text-sm font-semibold text-navy-800">
-                      {e.name}
+            <div className="mt-6 space-y-6">
+              {groups.map((g) => (
+                <section key={g.key} className="card">
+                  <h2 className="font-display text-base font-semibold text-navy-800">
+                    {g.name}
+                  </h2>
+
+                  {g.hasNumber && (
+                    <div className="mt-3">
+                      <SeverityChart
+                        points={
+                          [...g.points]
+                            .reverse()
+                            .map((p) => ({
+                              date: p.date,
+                              score: p.score,
+                            })) as ChartPoint[]
+                        }
+                        maxScore={g.maxScore}
+                      />
                     </div>
-                    <div className="mt-0.5 text-xs text-navy-400">
-                      Enviado em {formatDate(e.date)}
-                      {e.byDoctor && " · preenchido com o médico"}
-                    </div>
-                  </div>
-                  <span className="chip-teal shrink-0">Enviado ✓</span>
-                </li>
+                  )}
+
+                  <ul className="mt-3 space-y-2">
+                    {g.points.map((p) => (
+                      <li
+                        key={p.id}
+                        className="flex items-center justify-between gap-2 border-t border-navy-100 pt-2 text-sm first:border-0 first:pt-0"
+                      >
+                        <span className="text-navy-600">
+                          {formatDate(p.date)}
+                          {p.byDoctor && (
+                            <span className="ml-2 text-xs text-navy-400">
+                              · com o médico
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-semibold text-teal-700">
+                          {g.hasNumber ? `${p.score}/${g.maxScore}` : "Enviado ✓"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
           </>
         )}
 

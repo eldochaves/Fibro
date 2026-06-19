@@ -45,6 +45,12 @@ export function BpiForm({ targetUserId }: { targetUserId?: string }) {
     if (!targetUserId)
       return (
         <PatientSubmitted
+          score={
+            <>
+              Gravidade {result.severity}/10 · Interferência{" "}
+              {result.interference}/10
+            </>
+          }
           onBack={() => {
             router.push("/inicio");
             router.refresh();

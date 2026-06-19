@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getContext, isProfileComplete } from "@/lib/session";
 import { normalizeFrequency, isAvailableNow } from "@/lib/availability";
+import { SeverityChart, type ChartPoint } from "@/components/SeverityChart";
 import { BpiForm } from "./BpiForm";
 
 export const dynamic = "force-dynamic";
@@ -69,8 +70,24 @@ export default async function BpiPage() {
         {history.length > 0 && (
           <div className="mt-10">
             <h2 className="mb-3 text-sm font-semibold text-navy-700">
-              Suas respostas anteriores ({history.length})
+              Sua evolução ({history.length})
             </h2>
+            <div className="card mb-3">
+              <SeverityChart
+                points={
+                  [...history]
+                    .reverse()
+                    .map((h) => ({
+                      date: h.created_at,
+                      score: Number(h.score ?? 0),
+                    })) as ChartPoint[]
+                }
+                maxScore={10}
+              />
+              <p className="mt-1 text-center text-xs text-navy-300">
+                Interferência da dor no dia a dia (0–10)
+              </p>
+            </div>
             <ul className="space-y-3">
               {history.map((h) => (
                 <li key={h.id} className="card flex items-center justify-between">
@@ -82,12 +99,15 @@ export default async function BpiPage() {
                       </span>
                     )}
                   </span>
-                  <span className="chip-teal">Enviado ✓</span>
+                  <span className="chip-teal">
+                    {h.summary?.severity ?? "–"}/10 · {h.score}/10
+                  </span>
                 </li>
               ))}
             </ul>
             <p className="mt-3 text-center text-xs text-navy-400">
-              Os resultados são analisados pelo Dr. Eldo no seu acompanhamento.
+              Os números ajudam a acompanhar sua evolução. Quem interpreta é o
+              Dr. Eldo.
             </p>
           </div>
         )}

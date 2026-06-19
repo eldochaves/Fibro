@@ -39,6 +39,7 @@ export function PcsForm({ targetUserId }: { targetUserId?: string }) {
     if (!targetUserId)
       return (
         <PatientSubmitted
+          score={<>Pontuação: {result.total}/52</>}
           onBack={() => {
             router.push("/inicio");
             router.refresh();

@@ -39,6 +39,7 @@ export function CsiForm({ targetUserId }: { targetUserId?: string }) {
     if (!targetUserId)
       return (
         <PatientSubmitted
+          score={<>Pontuação: {result.total}/100</>}
           onBack={() => {
             router.push("/inicio");
             router.refresh();

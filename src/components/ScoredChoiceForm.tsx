@@ -46,6 +46,11 @@ export function ScoredChoiceForm({
     if (!targetUserId)
       return (
         <PatientSubmitted
+          score={
+            <>
+              Pontuação: {result.total}/{def.maxScore}
+            </>
+          }
           onBack={() => {
             router.push("/inicio");
             router.refresh();

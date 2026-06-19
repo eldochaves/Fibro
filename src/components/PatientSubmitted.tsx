@@ -1,17 +1,22 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 /**
  * Confirmação calorosa mostrada ao PACIENTE após enviar um questionário.
- * Propositalmente NÃO mostra escores, categorias nem conclusões clínicas —
- * o paciente não deve se autoavaliar; os números ficam para o médico. Ainda
- * assim dá um retorno acolhedor para não desestimular o preenchimento.
+ * Pode exibir o NÚMERO da pontuação (feedback), mas nunca faixas de
+ * referência, categorias ("leve/grave"), "atende critérios" ou conclusões —
+ * a interpretação é do médico. Assim o paciente vê sua evolução sem se
+ * autoavaliar.
  */
 export function PatientSubmitted({
   onBack,
   backLabel = "Voltar ao início",
+  score,
 }: {
   onBack: () => void;
   backLabel?: string;
+  score?: ReactNode;
 }) {
   return (
     <div className="space-y-5">
@@ -22,14 +27,19 @@ export function PatientSubmitted({
         <h2 className="font-display text-2xl font-semibold text-navy-800">
           Recebemos suas respostas!
         </h2>
+        {score && (
+          <div className="rounded-xl bg-navy-50 px-4 py-2 text-base font-semibold text-navy-800">
+            {score}
+          </div>
+        )}
         <p className="max-w-md text-base text-navy-600">
           Muito obrigado por dedicar esse tempo. Suas respostas foram enviadas
           com segurança ao <strong>Dr. Eldo Chaves</strong>, que vai analisá-las
           no seu acompanhamento.
         </p>
         <p className="max-w-md text-sm text-navy-400">
-          Você não precisa entender ou interpretar números — responder com
-          sinceridade já é o que mais ajuda no seu cuidado. 🌿
+          O número acima ajuda a acompanhar a sua evolução. Quem interpreta o
+          resultado é o seu médico. 🌿
         </p>
       </div>
       <button onClick={onBack} className="btn-primary w-full text-base">

@@ -11,6 +11,7 @@ import { QUESTIONNAIRE_BY_KEY } from "@/lib/questionnaires";
 import { ScoredChoiceForm } from "@/components/ScoredChoiceForm";
 import { CriteriaForm } from "@/components/CriteriaForm";
 import { LikertScaleForm } from "@/components/LikertScaleForm";
+import { SeverityChart, type ChartPoint } from "@/components/SeverityChart";
 
 export const dynamic = "force-dynamic";
 
@@ -89,8 +90,25 @@ export default async function ScoredQuestionnairePage({
         {history.length > 0 && (
           <div className="mt-10">
             <h2 className="mb-3 text-sm font-semibold text-navy-700">
-              Suas respostas anteriores ({history.length})
+              {isCriteria
+                ? `Suas respostas anteriores (${history.length})`
+                : `Sua evolução (${history.length})`}
             </h2>
+            {!isCriteria && (
+              <div className="card mb-3">
+                <SeverityChart
+                  points={
+                    [...history]
+                      .reverse()
+                      .map((h) => ({
+                        date: h.created_at,
+                        score: Number(h.score ?? 0),
+                      })) as ChartPoint[]
+                  }
+                  maxScore={meta.maxScore}
+                />
+              </div>
+            )}
             <ul className="space-y-3">
               {history.map((h) => (
                 <li key={h.id} className="card flex items-center justify-between">
@@ -102,12 +120,16 @@ export default async function ScoredQuestionnairePage({
                       </span>
                     )}
                   </span>
-                  <span className="chip-teal">Enviado ✓</span>
+                  <span className="chip-teal">
+                    {isCriteria ? "Enviado ✓" : `${h.score}/${meta.maxScore}`}
+                  </span>
                 </li>
               ))}
             </ul>
             <p className="mt-3 text-center text-xs text-navy-400">
-              Os resultados são analisados pelo Dr. Eldo no seu acompanhamento.
+              {isCriteria
+                ? "As respostas são avaliadas pelo Dr. Eldo no seu acompanhamento."
+                : "Os números ajudam a acompanhar sua evolução. Quem interpreta é o Dr. Eldo."}
             </p>
           </div>
         )}
