@@ -1,8 +1,9 @@
 /**
  * ODI — Oswestry Disability Index (Índice de Incapacidade de Oswestry).
- * 10 seções, cada uma de 0 a 5. O resultado é expresso em PORCENTAGEM:
- * (soma ÷ 50) × 100. Aqui cada nível vale (nível × 2), de modo que a soma
- * das 10 seções já é a porcentagem (0–100). Quanto MAIOR, pior.
+ * 9 seções (a seção "vida sexual" do instrumento original foi omitida, prática
+ * reconhecida pelo manual), cada uma de 0 a 5. O resultado é expresso em
+ * PORCENTAGEM: (soma dos níveis ÷ (9 × 5)) × 100. Para que a soma das opções já
+ * seja a própria porcentagem, cada nível vale (nível × 20/9). Quanto MAIOR, pior.
  *
  * Faixas: 0–20 mínima · 21–40 moderada · 41–60 intensa · 61–80 muito grave
  *         · 81–100 incapacidade total.
@@ -20,12 +21,15 @@ const CATEGORIES: ScoredCategory[] = [
   { max: 100, label: "Incapacidade total (restrito ao leito)" },
 ];
 
-/** Converte 6 enunciados (níveis 0–5) em opções valendo nível × 2. */
+// Cada nível 0–5 vale (nível × 20/9) para que a soma das 9 seções = % (0–100).
+const STEP = 20 / 9;
+
+/** Converte 6 enunciados (níveis 0–5) em opções pontuadas para gerar a %. */
 function q(id: string, labels: [string, string, string, string, string, string]): ScoredQuestion {
   return {
     id,
     label: "",
-    options: labels.map((label, i) => ({ label, value: i * 2 })),
+    options: labels.map((label, i) => ({ label, value: i * STEP })),
   };
 }
 
@@ -129,20 +133,7 @@ export const ODI: ScoredDef = {
       ],
     },
     {
-      title: "8. Vida sexual (se aplicável)",
-      questions: [
-        q("p8", [
-          "Minha vida sexual é normal, sem causar dor",
-          "Minha vida sexual é normal, mas causa alguma dor",
-          "Minha vida sexual é quase normal, mas é muito dolorosa",
-          "Minha vida sexual é muito limitada pela dor",
-          "Minha vida sexual é quase ausente por causa da dor",
-          "A dor impede qualquer vida sexual",
-        ]),
-      ],
-    },
-    {
-      title: "9. Vida social",
+      title: "8. Vida social",
       questions: [
         q("p9", [
           "Minha vida social é normal, sem dor",
@@ -155,7 +146,7 @@ export const ODI: ScoredDef = {
       ],
     },
     {
-      title: "10. Viagens e locomoção",
+      title: "9. Viagens e locomoção",
       questions: [
         q("p10", [
           "Posso ir a qualquer lugar sem dor",
