@@ -4,6 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminCreatePatient } from "@/app/actions";
 import { formatCPF, formatPhone, isValidCPF } from "@/lib/masks";
+import {
+  DISEASES,
+  DISEASE_LABEL,
+  QUESTIONNAIRES,
+} from "@/lib/questionnaires";
+import { diseaseTheme } from "@/lib/diseaseTheme";
 
 export function NovoPacienteForm() {
   const router = useRouter();
@@ -12,8 +18,15 @@ export function NovoPacienteForm() {
   const [birthDate, setBirthDate] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [questionnaires, setQuestionnaires] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function toggleQ(key: string) {
+    setQuestionnaires((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +42,7 @@ export function NovoPacienteForm() {
       birth_date: birthDate || null,
       phone: phone.replace(/\D/g, "") || null,
       email: email.trim() || null,
+      questionnaires,
     });
     if (res.ok) {
       router.push(`/admin/${res.userId}`);
@@ -38,6 +52,22 @@ export function NovoPacienteForm() {
       setError(res.error ?? "Não foi possível cadastrar.");
     }
   }
+
+  // Questionários agrupados por doença (genéricos como a EVA ficam em "Geral").
+  const groups = [
+    ...DISEASES.map((d) => ({
+      key: d.key,
+      label: DISEASE_LABEL[d.key],
+      icon: diseaseTheme(d.key).icon,
+      items: QUESTIONNAIRES.filter((q) => q.diseases.includes(d.key)),
+    })),
+    {
+      key: "_geral",
+      label: "Geral",
+      icon: "📏",
+      items: QUESTIONNAIRES.filter((q) => q.diseases.length === 0),
+    },
+  ].filter((g) => g.items.length > 0);
 
   return (
     <form onSubmit={handleSubmit} className="card space-y-4">
@@ -109,6 +139,47 @@ export function NovoPacienteForm() {
             inputMode="email"
             placeholder="paciente@email.com"
           />
+        </div>
+      </div>
+
+      {/* Questionários (opcional) — marcam a doença automaticamente */}
+      <div>
+        <span className="label">
+          Questionários para liberar{" "}
+          <span className="font-normal text-navy-300">(opcional)</span>
+        </span>
+        <p className="mb-2 text-xs text-navy-400">
+          Ao marcar um questionário, a doença correspondente já é atribuída ao
+          paciente. Você pode ajustar tudo depois na ficha.
+        </p>
+        <div className="space-y-3">
+          {groups.map((g) => (
+            <div key={g.key}>
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-navy-400">
+                {g.icon} {g.label}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {g.items.map((q) => {
+                  const active = questionnaires.includes(q.key);
+                  return (
+                    <button
+                      key={q.key}
+                      type="button"
+                      onClick={() => toggleQ(q.key)}
+                      aria-pressed={active}
+                      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                        active
+                          ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
+                          : "border-navy-200 bg-white text-navy-600 hover:border-navy-300"
+                      }`}
+                    >
+                      {q.indexLabel}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

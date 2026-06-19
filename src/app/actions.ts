@@ -23,6 +23,7 @@ import { SCORED_DEFS } from "@/lib/lequesne";
 import { computeCriteria, CRITERIA_DEFS } from "@/lib/criteria";
 import { computeLikert } from "@/lib/likert";
 import { LIKERT_DEFS } from "@/lib/koos";
+import { QUESTIONNAIRE_BY_KEY } from "@/lib/questionnaires";
 
 /** Salva uma avaliação ACR 2016 para o usuário autenticado. */
 export async function saveAssessment(answers: FibroAnswers) {
@@ -277,6 +278,7 @@ export async function adminCreatePatient(data: {
   birth_date?: string | null;
   phone?: string | null;
   email?: string | null;
+  questionnaires?: string[];
 }) {
   await requireAdmin();
   const admin = createAdminClient();
@@ -301,6 +303,16 @@ export async function adminCreatePatient(data: {
   if (error) return { ok: false as const, error: error.message };
   const uid = created.user!.id;
 
+  // Questionários escolhidos no cadastro → infere a(s) doença(s) associada(s).
+  const questionnaires = (data.questionnaires ?? []).filter(
+    (k) => QUESTIONNAIRE_BY_KEY[k]
+  );
+  const diseases = Array.from(
+    new Set(
+      questionnaires.flatMap((k) => QUESTIONNAIRE_BY_KEY[k]?.diseases ?? [])
+    )
+  );
+
   await admin.from("profiles").upsert(
     {
       id: uid,
@@ -309,6 +321,8 @@ export async function adminCreatePatient(data: {
       birth_date: data.birth_date || null,
       phone: data.phone || null,
       email,
+      diseases,
+      questionnaires,
     },
     { onConflict: "id" }
   );
