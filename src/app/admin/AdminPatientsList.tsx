@@ -22,6 +22,7 @@ export interface PatientSummary {
   indices: PatientIndex[];
   pending: boolean;
   latestDate: string | null;
+  newCount: number;
 }
 
 export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) {
@@ -128,6 +129,14 @@ export function AdminPatientsList({ patients }: { patients: PatientSummary[] }) 
                     <span className="truncate text-sm font-semibold text-navy-800">
                       {p.fullName || "(sem nome)"}
                     </span>
+                    {p.newCount > 0 && (
+                      <span
+                        className="shrink-0 rounded-full bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-white"
+                        title={`${p.newCount} envio(s) novo(s)`}
+                      >
+                        🔔 {p.newCount}
+                      </span>
+                    )}
                     {p.pending && (
                       <span
                         className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800"

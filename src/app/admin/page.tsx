@@ -38,7 +38,6 @@ interface ProfileRow {
   questionnaire_freq: Record<string, string> | null;
   questionnaire_requests: Record<string, string> | null;
   questionnaire_dismissed: Record<string, string> | null;
-  admin_last_seen_at: string | null;
 }
 
 const DAY = 86400000;
@@ -53,11 +52,12 @@ export default async function AdminPage() {
     { data: qrs },
     { data: episodes },
     { data: admins },
+    { data: seenRow },
   ] = await Promise.all([
     supabase
       .from("profiles")
       .select(
-        "id, full_name, email, avatar_url, diseases, questionnaires, questionnaire_freq, questionnaire_requests, questionnaire_dismissed, admin_last_seen_at"
+        "id, full_name, email, avatar_url, diseases, questionnaires, questionnaire_freq, questionnaire_requests, questionnaire_dismissed"
       ),
     supabase
       .from("assessments")
@@ -72,6 +72,12 @@ export default async function AdminPage() {
       .select("user_id, created_at")
       .order("created_at", { ascending: false }),
     supabase.from("admin_emails").select("email"),
+    // Separado e tolerante a falha: se a migração 014 ainda não rodou, ignora.
+    supabase
+      .from("profiles")
+      .select("admin_last_seen_at")
+      .eq("id", user.id)
+      .maybeSingle(),
   ]);
 
   const adminEmails = new Set(
@@ -152,6 +158,7 @@ export default async function AdminPage() {
         indices,
         pending,
         latestDate: latestTs ? new Date(latestTs).toISOString() : null,
+        newCount: 0,
       };
     })
     .sort((a, b) => {
@@ -195,12 +202,16 @@ export default async function AdminPage() {
   const recent = events.slice(0, 8);
   const last7 = events.filter((e) => e.ts >= Date.now() - 7 * DAY).length;
 
-  // Novidades desde a última vez que o médico viu (null = nada novo ainda)
-  const me = (profiles as ProfileRow[] | null)?.find((p) => p.id === user.id);
-  const lastSeenMs = me?.admin_last_seen_at
-    ? Date.parse(me.admin_last_seen_at)
-    : Date.now();
+  // Novidades desde a última vez que o médico viu. Sem registro ainda =>
+  // mostra tudo (assim nada passa despercebido até clicar em "marcar como visto").
+  const lastSeenRaw = (seenRow as { admin_last_seen_at?: string | null } | null)
+    ?.admin_last_seen_at;
+  const lastSeenMs = lastSeenRaw ? Date.parse(lastSeenRaw) : 0;
   const novidades = events.filter((e) => e.ts > lastSeenMs);
+  const newByUser = new Map<string, number>();
+  for (const e of novidades)
+    newByUser.set(e.userId, (newByUser.get(e.userId) ?? 0) + 1);
+  for (const p of patients) p.newCount = newByUser.get(p.id) ?? 0;
 
   return (
     <>
