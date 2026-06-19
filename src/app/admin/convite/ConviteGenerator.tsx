@@ -2,7 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { QUESTIONNAIRES } from "@/lib/questionnaires";
+import {
+  QUESTIONNAIRES,
+  DISEASES,
+  DISEASE_LABEL,
+} from "@/lib/questionnaires";
+import { diseaseTheme } from "@/lib/diseaseTheme";
 import { buildWhatsappLink, buildMailtoLink } from "@/lib/whatsapp";
 
 export function ConviteGenerator({ siteUrl }: { siteUrl: string }) {
@@ -12,6 +17,28 @@ export function ConviteGenerator({ siteUrl }: { siteUrl: string }) {
 
   const def = QUESTIONNAIRES.find((q) => q.key === key);
   const link = `${siteUrl}/c/${key}`;
+
+  // Questionários agrupados por doença (genéricos como a EVA vão em "Geral").
+  const groups = useMemo(
+    () =>
+      [
+        ...DISEASES.map((d) => ({
+          key: d.key,
+          label: DISEASE_LABEL[d.key],
+          icon: diseaseTheme(d.key).icon,
+          items: QUESTIONNAIRES.filter((q) => q.diseases.includes(d.key)),
+        })),
+        {
+          key: "_geral",
+          label: "Geral",
+          icon: "📏",
+          items: QUESTIONNAIRES.filter((q) => q.diseases.length === 0),
+        },
+      ].filter((g) => g.items.length > 0),
+    []
+  );
+
+  const diseaseTags = (def?.diseases ?? []).map((d) => DISEASE_LABEL[d] ?? d);
 
   const message = useMemo(
     () =>
@@ -40,29 +67,50 @@ export function ConviteGenerator({ siteUrl }: { siteUrl: string }) {
 
   return (
     <div className="space-y-4">
-      {/* Escolha do questionário */}
+      {/* Escolha do questionário (agrupado por doença) */}
       <div className="card">
-        <span className="label">Questionário</span>
-        <div className="flex flex-wrap gap-2">
-          {QUESTIONNAIRES.map((q) => {
-            const active = q.key === key;
-            return (
-              <button
-                key={q.key}
-                type="button"
-                onClick={() => setKey(q.key)}
-                aria-pressed={active}
-                className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-                  active
-                    ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
-                    : "border-navy-200 bg-white text-navy-600 hover:border-navy-300"
-                }`}
-              >
-                {q.name}
-              </button>
-            );
-          })}
+        <span className="label">Questionário do convite</span>
+        <div className="space-y-3">
+          {groups.map((g) => (
+            <div key={g.key}>
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-navy-400">
+                {g.icon} {g.label}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {g.items.map((q) => {
+                  const active = q.key === key;
+                  return (
+                    <button
+                      key={q.key}
+                      type="button"
+                      onClick={() => setKey(q.key)}
+                      aria-pressed={active}
+                      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                        active
+                          ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
+                          : "border-navy-200 bg-white text-navy-600 hover:border-navy-300"
+                      }`}
+                    >
+                      {q.indexLabel}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
+        {def && (
+          <p className="mt-3 text-xs text-navy-500">
+            Selecionado: <strong>{def.name}</strong>
+            {diseaseTags.length > 0 && (
+              <>
+                {" "}
+                · ao acessar, marca{" "}
+                <strong>{diseaseTags.join(", ")}</strong> no paciente
+              </>
+            )}
+          </p>
+        )}
       </div>
 
       {/* QR + link */}
