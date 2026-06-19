@@ -35,6 +35,7 @@ export interface InfiltracaoAnswers {
   efeito_desc?: string; // descrição do efeito (se houve)
   recomenda?: number; // índice em RECOMENDA_OPTIONS
   depoimento?: string; // texto livre
+  sites?: string[]; // locais infiltrados (chaves de subtipo), confirmados pelo paciente
   consent?: boolean; // autoriza compartilhar (anônimo)
   consent_nome?: boolean; // autoriza usar o primeiro nome
 }

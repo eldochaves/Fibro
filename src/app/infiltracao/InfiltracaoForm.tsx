@@ -11,17 +11,18 @@ import {
   isInfiltracaoComplete,
   type InfiltracaoAnswers,
 } from "@/lib/infiltracao";
+import { TENDINITE_SUBTYPES } from "@/lib/questionnaires";
 import { saveInfiltracao, adminSaveInfiltracao } from "@/app/actions";
 
 export function InfiltracaoForm({
   targetUserId,
-  sites = [],
+  initialSites = [],
 }: {
   targetUserId?: string;
-  sites?: string[];
+  initialSites?: string[];
 }) {
   const router = useRouter();
-  const [a, setA] = useState<InfiltracaoAnswers>({});
+  const [a, setA] = useState<InfiltracaoAnswers>({ sites: initialSites });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,12 +81,43 @@ export function InfiltracaoForm({
         Este é um retorno sobre a <strong>infiltração</strong> (com lidocaína e
         betametasona) que você realizou. Suas respostas ajudam o Dr. Eldo a
         cuidar de você e de outros pacientes. 💙
-        {sites.length > 0 && (
-          <span className="mt-1 block text-teal-700">
-            Local(is): <strong>{sites.join(", ")}</strong>
-          </span>
-        )}
       </div>
+
+      {/* Locais infiltrados (pré-marcados pelo médico; o paciente pode ajustar) */}
+      <section className="card">
+        <h2 className="font-display text-base font-semibold text-navy-800">
+          Quais locais foram infiltrados?
+        </h2>
+        <p className="mt-1 text-xs text-navy-400">
+          Já deixamos marcado o que o seu médico indicou. Ajuste se precisar.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {TENDINITE_SUBTYPES.map((s) => {
+            const active = (a.sites ?? []).includes(s.key);
+            return (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() =>
+                  set({
+                    sites: active
+                      ? (a.sites ?? []).filter((k) => k !== s.key)
+                      : [...(a.sites ?? []), s.key],
+                  })
+                }
+                aria-pressed={active}
+                className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                  active
+                    ? "border-purple-500 bg-purple-100 text-purple-800 ring-1 ring-purple-400"
+                    : "border-navy-200 bg-white text-navy-600 hover:border-navy-300"
+                }`}
+              >
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {/* PGIC */}
       <Choice

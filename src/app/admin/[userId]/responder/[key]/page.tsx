@@ -17,7 +17,6 @@ import { CriteriaForm } from "@/components/CriteriaForm";
 import { CRITERIA_DEFS } from "@/lib/criteria";
 import { LikertScaleForm } from "@/components/LikertScaleForm";
 import { LIKERT_DEFS } from "@/lib/koos";
-import { REGION_LABEL } from "@/lib/questionnaires";
 
 export const dynamic = "force-dynamic";
 
@@ -45,9 +44,7 @@ export default async function AdminResponderPage({
     .select("infiltracao_sites")
     .eq("id", userId)
     .maybeSingle();
-  const infiltracaoSites = (
-    ((sitesRow?.infiltracao_sites as string[]) ?? []) as string[]
-  ).map((k) => REGION_LABEL[k] ?? k);
+  const infiltracaoSites = (sitesRow?.infiltracao_sites as string[]) ?? [];
 
   return (
     <>
@@ -120,7 +117,7 @@ export default async function AdminResponderPage({
             <h1 className="mb-4 font-display text-2xl font-semibold text-navy-800">
               {def.name}
             </h1>
-            <InfiltracaoForm targetUserId={userId} sites={infiltracaoSites} />
+            <InfiltracaoForm targetUserId={userId} initialSites={infiltracaoSites} />
           </>
         )}
         {SCORED_DEFS[key] && (

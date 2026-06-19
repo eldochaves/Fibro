@@ -824,7 +824,7 @@ export async function saveBpi(answers: Record<string, number>) {
   return { ok: true as const, result: r };
 }
 
-async function infiltracaoSiteLabels(
+async function infiltracaoSiteKeys(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string
 ): Promise<string[]> {
@@ -833,7 +833,10 @@ async function infiltracaoSiteLabels(
     .select("infiltracao_sites")
     .eq("id", userId)
     .maybeSingle();
-  const keys: string[] = (data?.infiltracao_sites as string[]) ?? [];
+  return (data?.infiltracao_sites as string[]) ?? [];
+}
+
+function siteLabels(keys: string[]): string[] {
   return keys.map((k) => REGION_LABEL[k] ?? k);
 }
 
@@ -873,8 +876,11 @@ export async function saveInfiltracao(answers: InfiltracaoAnswers) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  const sites = await infiltracaoSiteLabels(supabase, user.id);
-  const s = { ...infiltracaoSummary(answers), sites };
+  const keys =
+    answers.sites && answers.sites.length > 0
+      ? answers.sites
+      : await infiltracaoSiteKeys(supabase, user.id);
+  const s = { ...infiltracaoSummary(answers), sites: siteLabels(keys) };
   const { error } = await supabase.from("questionnaire_responses").insert({
     user_id: user.id,
     questionnaire_key: "infiltracao_tend",
@@ -892,8 +898,11 @@ export async function adminSaveInfiltracao(
   answers: InfiltracaoAnswers
 ) {
   const supabase = await requireAdmin();
-  const sites = await infiltracaoSiteLabels(supabase, userId);
-  const s = { ...infiltracaoSummary(answers), sites };
+  const keys =
+    answers.sites && answers.sites.length > 0
+      ? answers.sites
+      : await infiltracaoSiteKeys(supabase, userId);
+  const s = { ...infiltracaoSummary(answers), sites: siteLabels(keys) };
   return adminSaveResponse(
     userId,
     "infiltracao_tend",

@@ -4,7 +4,6 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getContext, isProfileComplete } from "@/lib/session";
 import { normalizeFrequency, isAvailableNow } from "@/lib/availability";
-import { REGION_LABEL } from "@/lib/questionnaires";
 import { InfiltracaoForm } from "./InfiltracaoForm";
 
 export const dynamic = "force-dynamic";
@@ -34,9 +33,7 @@ export default async function InfiltracaoPage() {
     .select("infiltracao_sites")
     .eq("id", user.id)
     .maybeSingle();
-  const sites = (
-    ((sitesRow?.infiltracao_sites as string[]) ?? []) as string[]
-  ).map((k) => REGION_LABEL[k] ?? k);
+  const siteKeys = (sitesRow?.infiltracao_sites as string[]) ?? [];
 
   const freq = normalizeFrequency(
     profile?.questionnaire_freq?.["infiltracao_tend"]
@@ -65,7 +62,7 @@ export default async function InfiltracaoPage() {
         </p>
 
         {available ? (
-          <InfiltracaoForm sites={sites} />
+          <InfiltracaoForm initialSites={siteKeys} />
         ) : (
           <div className="card text-center text-navy-500">
             <div className="mb-2 text-3xl">✅</div>
