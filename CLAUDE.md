@@ -75,6 +75,15 @@ domínio, junto com as configs do Resend (ver seção do Diário acima). Ideia:
 um job diário (Vercel Cron) que verifica envios das últimas 24h e, havendo
 novidade, manda um e-mail-resumo com os nomes e o que cada um enviou.
 
+### Página de depoimentos pós-infiltração (acumular antes)
+O questionário **"Feedback pós-infiltração"** (`infiltracao_tend`, rota
+`/infiltracao`, dentro de Tendinites) já guarda o **depoimento** em texto livre
+e a **autorização** do paciente (`summary.consent` e `summary.consent_nome`:
+anônimo ou com primeiro nome). Decisão do médico: **primeiro acumular respostas**
+e só depois criar a página pública de depoimentos. Quando for a hora, criar uma
+vitrine que exiba **apenas** os depoimentos com `consent = true` (anônimos ou,
+se `consent_nome`, com o primeiro nome) — para outros pacientes verem.
+
 ### Outras ideias já levantadas (não implementadas)
 - Questionário FIQR (impacto/severidade ao longo do tempo).
 - Exportar pacientes/avaliações em CSV.
