@@ -62,6 +62,19 @@ prática.
 
 Aproveitar o domínio também para apontar o site (em vez de `fibro.vercel.app`).
 
+### Aviso ao médico por e-mail (quando houver domínio próprio)
+Hoje o médico é avisado de novos envios dos pacientes (questionários e diário)
+por um painel **"Novidades"** dentro de `/admin` (sino + "marcar como visto",
+baseado em `profiles.admin_last_seen_at`). Não envia e-mail.
+
+**Quando a clínica tiver domínio próprio**, implementar o **resumo por e-mail**
+(o médico pediu: enviar **só se houver novidade**, em formato de **resumo**, não
+um e-mail por envio). Como o destinatário é o próprio médico, isso funcionaria
+até no modo de teste do Resend — mas a decisão foi deixar para quando houver
+domínio, junto com as configs do Resend (ver seção do Diário acima). Ideia:
+um job diário (Vercel Cron) que verifica envios das últimas 24h e, havendo
+novidade, manda um e-mail-resumo com os nomes e o que cada um enviou.
+
 ### Outras ideias já levantadas (não implementadas)
 - Questionário FIQR (impacto/severidade ao longo do tempo).
 - Exportar pacientes/avaliações em CSV.

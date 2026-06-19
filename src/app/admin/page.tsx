@@ -10,6 +10,7 @@ import {
 } from "@/lib/questionnaires";
 import { normalizeFrequency, isPending } from "@/lib/availability";
 import { AdminPatientsList, type PatientSummary } from "./AdminPatientsList";
+import { MarkSeenButton } from "./MarkSeenButton";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ interface ProfileRow {
   questionnaire_freq: Record<string, string> | null;
   questionnaire_requests: Record<string, string> | null;
   questionnaire_dismissed: Record<string, string> | null;
+  admin_last_seen_at: string | null;
 }
 
 const DAY = 86400000;
@@ -45,23 +47,32 @@ export default async function AdminPage() {
   const { supabase, user, isAdmin } = await getContext();
   if (!isAdmin) redirect("/historico");
 
-  const [{ data: profiles }, { data: assessments }, { data: qrs }, { data: admins }] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select(
-          "id, full_name, email, avatar_url, diseases, questionnaires, questionnaire_freq, questionnaire_requests, questionnaire_dismissed"
-        ),
-      supabase
-        .from("assessments")
-        .select("user_id, created_at, severity_score, meets_criteria")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("questionnaire_responses")
-        .select("user_id, questionnaire_key, created_at, score")
-        .order("created_at", { ascending: false }),
-      supabase.from("admin_emails").select("email"),
-    ]);
+  const [
+    { data: profiles },
+    { data: assessments },
+    { data: qrs },
+    { data: episodes },
+    { data: admins },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select(
+        "id, full_name, email, avatar_url, diseases, questionnaires, questionnaire_freq, questionnaire_requests, questionnaire_dismissed, admin_last_seen_at"
+      ),
+    supabase
+      .from("assessments")
+      .select("user_id, created_at, severity_score, meets_criteria")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("questionnaire_responses")
+      .select("user_id, questionnaire_key, created_at, score")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("pain_episodes")
+      .select("user_id, created_at")
+      .order("created_at", { ascending: false }),
+    supabase.from("admin_emails").select("email"),
+  ]);
 
   const adminEmails = new Set(
     (admins ?? []).map((a: { email: string }) => a.email.toLowerCase())
@@ -172,9 +183,24 @@ export default async function AdminPage() {
       ts: Date.parse(r.created_at),
     });
   }
+  for (const e of (episodes ?? []) as { user_id: string; created_at: string }[]) {
+    if (!patientIds.has(e.user_id)) continue;
+    events.push({
+      userId: e.user_id,
+      label: "Diário de Dor",
+      ts: Date.parse(e.created_at),
+    });
+  }
   events.sort((a, b) => b.ts - a.ts);
   const recent = events.slice(0, 8);
   const last7 = events.filter((e) => e.ts >= Date.now() - 7 * DAY).length;
+
+  // Novidades desde a última vez que o médico viu (null = nada novo ainda)
+  const me = (profiles as ProfileRow[] | null)?.find((p) => p.id === user.id);
+  const lastSeenMs = me?.admin_last_seen_at
+    ? Date.parse(me.admin_last_seen_at)
+    : Date.now();
+  const novidades = events.filter((e) => e.ts > lastSeenMs);
 
   return (
     <>
@@ -201,6 +227,49 @@ export default async function AdminPage() {
             </Link>
           </div>
         </div>
+
+        {/* Novidades (envios desde a última visualização) */}
+        {novidades.length > 0 && (
+          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-amber-800">
+                🔔 {novidades.length}{" "}
+                {novidades.length === 1 ? "novidade" : "novidades"} desde a
+                última vez
+              </h2>
+              <MarkSeenButton />
+            </div>
+            <ul className="mt-3 space-y-2">
+              {novidades.slice(0, 12).map((e, i) => (
+                <li key={i}>
+                  <Link
+                    href={`/admin/${e.userId}`}
+                    className="flex items-center gap-3 rounded-xl bg-white px-3 py-2 transition hover:bg-white/60"
+                  >
+                    <Avatar
+                      url={avatarById.get(e.userId) ?? null}
+                      name={nameById.get(e.userId) ?? null}
+                      size={32}
+                    />
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium text-navy-800">
+                        {nameById.get(e.userId) || "(sem nome)"}
+                      </div>
+                      <div className="truncate text-xs text-navy-500">
+                        {e.label} · {timeAgo(e.ts)}
+                      </div>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {novidades.length > 12 && (
+              <p className="mt-2 text-xs text-amber-700">
+                + {novidades.length - 12} outras…
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Indicadores */}
         <div className="mb-6 mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">

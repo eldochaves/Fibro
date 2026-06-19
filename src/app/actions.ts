@@ -150,6 +150,22 @@ export async function adminDeleteAssessment(assessmentId: string, userId: string
   return { ok: true as const };
 }
 
+/** Médico marca a atividade dos pacientes como vista (zera as "Novidades"). */
+export async function adminMarkActivitySeen() {
+  const supabase = await requireAdmin();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const { error } = await supabase
+    .from("profiles")
+    .update({ admin_last_seen_at: new Date().toISOString() })
+    .eq("id", user.id);
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/admin");
+  return { ok: true as const };
+}
+
 /** Médico edita o conteúdo educativo (resumo + links) de uma doença. */
 export async function adminSaveDiseaseInfo(
   diseaseKey: string,

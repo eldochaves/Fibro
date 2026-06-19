@@ -220,3 +220,9 @@ drop policy if exists "disease_info_admin" on public.disease_info;
 create policy "disease_info_admin"
   on public.disease_info for all
   using (public.is_admin()) with check (public.is_admin());
+
+-- ---------------------------------------------------------------------
+-- 014 — "Novidades" no painel do médico (última visualização)
+-- ---------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists admin_last_seen_at timestamptz;
