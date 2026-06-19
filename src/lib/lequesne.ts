@@ -10,6 +10,8 @@
 import type { ScoredDef, ScoredSection, ScoredCategory } from "@/lib/scored";
 import { FIHOA } from "@/lib/fihoa";
 import { AUSCAN } from "@/lib/auscan";
+import { ODI } from "@/lib/odi";
+import { STARTBACK } from "@/lib/startback";
 
 const CATEGORIES: ScoredCategory[] = [
   { max: 0, label: "Sem acometimento" },
@@ -174,4 +176,6 @@ export const SCORED_DEFS: Record<string, ScoredDef> = {
   lequesne_quadril: LEQUESNE_HIP,
   fihoa: FIHOA,
   auscan: AUSCAN,
+  odi: ODI,
+  startback: STARTBACK,
 };

@@ -84,9 +84,11 @@ export function ScoredChoiceForm({
           <div className="mt-4 space-y-5">
             {sec.questions.map((q) => (
               <div key={q.id}>
-                <div className="mb-2 text-sm font-medium text-navy-800">
-                  {q.label}
-                </div>
+                {q.label && (
+                  <div className="mb-2 text-sm font-medium text-navy-800">
+                    {q.label}
+                  </div>
+                )}
                 <div className="space-y-1.5">
                   {q.options.map((opt, idx) => {
                     const active = answers[q.id] === idx;

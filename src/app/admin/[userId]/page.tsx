@@ -67,6 +67,8 @@ function summaryLine(key: string, s: Record<string, unknown> | null): string {
     );
   if (key === "womac")
     return `Dor ${s.pain}/20 · Rigidez ${s.stiffness}/8 · Função ${s.function}/68`;
+  if (key === "bpi")
+    return `Gravidade ${s.severity}/10 · Interferência ${s.interference}/10`;
   if (Array.isArray(s.subscales))
     return (s.subscales as { title: string; score: number }[])
       .map((x) => `${x.title} ${x.score}`)

@@ -17,6 +17,7 @@ import { computeCsi } from "@/lib/csi";
 import { computePcs } from "@/lib/pcs";
 import { computeWomac } from "@/lib/womac";
 import { computeEva } from "@/lib/eva";
+import { computeBpi } from "@/lib/bpi";
 import { computeScored } from "@/lib/scored";
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { computeCriteria, CRITERIA_DEFS } from "@/lib/criteria";
@@ -413,6 +414,17 @@ export async function adminSaveEva(
   return adminSaveResponse(userId, "eva", answers as Record<string, number>, r.total, {});
 }
 
+export async function adminSaveBpi(
+  userId: string,
+  answers: Record<string, number>
+) {
+  const r = computeBpi(answers);
+  return adminSaveResponse(userId, "bpi", answers, r.interference, {
+    severity: r.severity,
+    interference: r.interference,
+  });
+}
+
 /**
  * Médico exclui um paciente por completo (conta + dados).
  * Usa a SERVICE ROLE KEY para remover a conta em auth.users; as tabelas
@@ -728,6 +740,26 @@ export async function saveEva(answers: { eva: number }) {
   });
   if (error) return { ok: false as const, error: error.message };
   revalidatePath("/eva");
+  return { ok: true as const, result: r };
+}
+
+/** Paciente salva uma resposta do BPI (Inventário Breve de Dor). */
+export async function saveBpi(answers: Record<string, number>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const r = computeBpi(answers);
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: "bpi",
+    answers,
+    score: r.interference,
+    summary: { severity: r.severity, interference: r.interference },
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/bpi");
   return { ok: true as const, result: r };
 }
 

@@ -124,8 +124,39 @@ const EULAR_KNEE: CriterionDef = {
     "Não é um escore de corte rígido: a presença das 3 sintomas + 3 sinais permite o diagnóstico clínico sem necessidade de imagem.",
 };
 
+const DELPHI_MIOFASCIAL: CriterionDef = {
+  key: "delphi_miofascial",
+  name: "Ponto-gatilho miofascial — Critérios de consenso (Delphi 2017)",
+  intro:
+    "Critérios essenciais para identificar um ponto-gatilho miofascial (Fernández-de-las-Peñas & Dommerholt, 2018). Com queixa de dor muscular regional, são necessários ao menos 2 dos 3 achados.",
+  gate: [
+    {
+      id: "g_dor",
+      label: "Dor muscular regional (espontânea ou desencadeada pela atividade)",
+    },
+  ],
+  items: [
+    { id: "i_banda", label: "Banda muscular tensa palpável" },
+    {
+      id: "i_ponto",
+      label: "Ponto hipersensível (nódulo doloroso) dentro da banda tensa",
+    },
+    {
+      id: "i_referida",
+      label:
+        "Dor referida e/ou reprodução do sintoma do paciente à compressão do ponto",
+    },
+  ],
+  threshold: 2,
+  metLabel: "Compatível com ponto-gatilho miofascial",
+  notMetLabel: "Não preenche os critérios essenciais de ponto-gatilho",
+  note:
+    "Consenso Delphi 2017: banda tensa, ponto hipersensível e dor referida/reconhecida. A confirmação clínica depende do exame por profissional experiente.",
+};
+
 export const CRITERIA_DEFS: Record<string, CriterionDef> = {
   acr_joelho: ACR_KNEE,
   acr_maos: ACR_HANDS,
   eular_joelho: EULAR_KNEE,
+  delphi_miofascial: DELPHI_MIOFASCIAL,
 };

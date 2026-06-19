@@ -9,6 +9,7 @@ import { CsiForm } from "@/app/csi/CsiForm";
 import { PcsForm } from "@/app/pcs/PcsForm";
 import { WomacForm } from "@/app/womac/WomacForm";
 import { EvaForm } from "@/app/eva/EvaForm";
+import { BpiForm } from "@/app/bpi/BpiForm";
 import { ScoredChoiceForm } from "@/components/ScoredChoiceForm";
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { CriteriaForm } from "@/components/CriteriaForm";
@@ -93,6 +94,14 @@ export default async function AdminResponderPage({
               {def.name}
             </h1>
             <EvaForm targetUserId={userId} />
+          </>
+        )}
+        {key === "bpi" && (
+          <>
+            <h1 className="mb-4 font-display text-2xl font-semibold text-navy-800">
+              {def.name}
+            </h1>
+            <BpiForm targetUserId={userId} />
           </>
         )}
         {SCORED_DEFS[key] && (

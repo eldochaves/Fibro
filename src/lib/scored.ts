@@ -29,6 +29,11 @@ export interface ScoredDef {
   maxScore: number;
   sections: ScoredSection[];
   categories?: ScoredCategory[];
+  /**
+   * Categoria customizada (sobrepõe `categories`). Útil quando a classificação
+   * não depende só do total — ex.: STarT Back usa total + subescala.
+   */
+  categoryFn?: (total: number, a: ScoredAnswers, def: ScoredDef) => string;
 }
 
 /** Respostas: { questionId: índice da opção escolhida } */
@@ -54,7 +59,9 @@ export function computeScored(
   }
   total = Math.round(total * 10) / 10;
   let category: string | null = null;
-  if (def.categories) {
+  if (def.categoryFn) {
+    category = def.categoryFn(total, a, def);
+  } else if (def.categories) {
     for (const c of def.categories) {
       if (total <= c.max) {
         category = c.label;
