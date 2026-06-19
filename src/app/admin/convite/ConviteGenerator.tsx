@@ -28,7 +28,11 @@ export function ConviteGenerator({
   const [sentSites, setSentSites] = useState(false);
 
   const def = QUESTIONNAIRES.find((q) => q.key === key);
-  const link = `${siteUrl}/c/${key}`;
+  const sitesParam =
+    key === "infiltracao_tend" && sites.length > 0
+      ? `?sites=${sites.join(",")}`
+      : "";
+  const link = `${siteUrl}/c/${key}${sitesParam}`;
 
   // Questionários agrupados por doença (genéricos como a EVA vão em "Geral").
   const groups = useMemo(
@@ -175,8 +179,9 @@ export function ConviteGenerator({
             </div>
           ) : (
             <p className="mt-2 text-xs text-navy-400">
-              Sem um paciente selecionado, o próprio paciente confirma os locais
-              ao responder.
+              Os locais marcados já vão no link/QR e aparecerão{" "}
+              <strong>pré-marcados</strong> para o paciente — ele pode ajustar se
+              precisar.
             </p>
           )}
         </div>

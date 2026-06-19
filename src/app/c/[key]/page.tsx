@@ -11,10 +11,13 @@ export const dynamic = "force-dynamic";
  */
 export default async function ConvitePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ key: string }>;
+  searchParams: Promise<{ sites?: string }>;
 }) {
   const { key } = await params;
+  const { sites } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -57,6 +60,21 @@ export default async function ConvitePage({
       questionnaire_requests: requests,
     })
     .eq("id", user.id);
+
+  // Feedback pós-infiltração: grava os locais vindos do link (pré-marcação).
+  // Separado e tolerante: não bloqueia o convite se a migração 015 não rodou.
+  if (key === "infiltracao_tend" && sites) {
+    const siteKeys = sites
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (siteKeys.length > 0) {
+      await supabase
+        .from("profiles")
+        .update({ infiltracao_sites: siteKeys })
+        .eq("id", user.id);
+    }
+  }
 
   const complete = Boolean(
     profile?.full_name && profile?.cpf && profile?.birth_date
