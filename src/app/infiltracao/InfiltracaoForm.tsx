@@ -119,12 +119,48 @@ export function InfiltracaoForm({ targetUserId }: { targetUserId?: string }) {
         onChange={(v) => set({ conforto: v })}
       />
 
-      {/* Efeito indesejado */}
-      <YesNo
-        title="Você teve algum efeito indesejado após a infiltração?"
-        value={a.efeito}
-        onChange={(b) => set({ efeito: b })}
-      />
+      {/* Efeito indesejado (+ descrição se sim) */}
+      <section className="card">
+        <h2 className="mb-3 font-display text-base font-semibold text-navy-800">
+          Você teve algum efeito indesejado após a infiltração?
+        </h2>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { b: true, label: "Sim" },
+            { b: false, label: "Não" },
+          ].map((o) => {
+            const active = a.efeito === o.b;
+            return (
+              <button
+                key={o.label}
+                type="button"
+                onClick={() =>
+                  set(o.b ? { efeito: true } : { efeito: false, efeito_desc: "" })
+                }
+                aria-pressed={active}
+                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition ${
+                  active
+                    ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
+                    : "border-navy-200 bg-white text-navy-700"
+                }`}
+              >
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
+        {a.efeito === true && (
+          <div className="mt-3">
+            <label className="label">Descreva o efeito que você sentiu</label>
+            <textarea
+              className="input min-h-[80px]"
+              value={a.efeito_desc ?? ""}
+              onChange={(e) => set({ efeito_desc: e.target.value })}
+              placeholder="Ex.: dor no local, vermelhidão, inchaço, alteração na pele…"
+            />
+          </div>
+        )}
+      </section>
 
       {/* Recomendaria */}
       <Choice
@@ -274,47 +310,6 @@ function Scale({
       <div className="mt-1 flex justify-between text-[11px] text-navy-300">
         <span>{min}</span>
         <span>{max}</span>
-      </div>
-    </section>
-  );
-}
-
-function YesNo({
-  title,
-  value,
-  onChange,
-}: {
-  title: string;
-  value: boolean | undefined;
-  onChange: (b: boolean) => void;
-}) {
-  return (
-    <section className="card">
-      <h2 className="mb-3 font-display text-base font-semibold text-navy-800">
-        {title}
-      </h2>
-      <div className="grid grid-cols-2 gap-2">
-        {[
-          { b: true, label: "Sim" },
-          { b: false, label: "Não" },
-        ].map((o) => {
-          const active = value === o.b;
-          return (
-            <button
-              key={o.label}
-              type="button"
-              onClick={() => onChange(o.b)}
-              aria-pressed={active}
-              className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition ${
-                active
-                  ? "border-teal-500 bg-teal-50 text-teal-800 ring-1 ring-teal-500"
-                  : "border-navy-200 bg-white text-navy-700"
-              }`}
-            >
-              {o.label}
-            </button>
-          );
-        })}
       </div>
     </section>
   );

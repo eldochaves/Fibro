@@ -73,6 +73,8 @@ function summaryLine(key: string, s: Record<string, unknown> | null): string {
     const parts: string[] = [];
     if (s.pgic) parts.push(`Evolução: ${s.pgic}`);
     parts.push(`Satisfação ${s.satisfacao}/10`);
+    if (s.efeito)
+      parts.push(`Efeito indesejado${s.efeito_desc ? `: ${s.efeito_desc}` : ""}`);
     if (s.recomenda) parts.push(`Recomenda: ${s.recomenda}`);
     if (s.depoimento) parts.push(`“${s.depoimento}”`);
     parts.push(

@@ -32,6 +32,7 @@ export interface InfiltracaoAnswers {
   satisfacao?: number; // 0–10
   conforto?: number; // 0–10 (dor/desconforto durante a aplicação)
   efeito?: boolean; // teve efeito indesejado?
+  efeito_desc?: string; // descrição do efeito (se houve)
   recomenda?: number; // índice em RECOMENDA_OPTIONS
   depoimento?: string; // texto livre
   consent?: boolean; // autoriza compartilhar (anônimo)
@@ -49,6 +50,8 @@ export function infiltracaoSummary(a: InfiltracaoAnswers) {
   return {
     satisfacao: a.satisfacao ?? 0,
     dor: a.dor ?? 0,
+    efeito: a.efeito === true,
+    efeito_desc: a.efeito === true ? (a.efeito_desc ?? "").trim() : "",
     pgic: typeof a.pgic === "number" ? PGIC_OPTIONS[a.pgic] : null,
     recomenda:
       typeof a.recomenda === "number" ? RECOMENDA_OPTIONS[a.recomenda] : null,
