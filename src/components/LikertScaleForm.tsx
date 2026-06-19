@@ -11,6 +11,7 @@ import {
 } from "@/lib/likert";
 import { LIKERT_DEFS } from "@/lib/koos";
 import { saveLikert, adminSaveLikert } from "@/app/actions";
+import { PatientSubmitted } from "@/components/PatientSubmitted";
 
 export function LikertScaleForm({
   questionnaireKey,
@@ -43,6 +44,15 @@ export function LikertScaleForm({
   }
 
   if (saved) {
+    if (!targetUserId)
+      return (
+        <PatientSubmitted
+          onBack={() => {
+            router.push("/inicio");
+            router.refresh();
+          }}
+        />
+      );
     return (
       <div className="space-y-5">
         <div className="card flex flex-col items-center gap-3 text-center">
@@ -151,7 +161,7 @@ export function LikertScaleForm({
           <span>
             Respondidas: <strong>{answered}</strong> de {total}
           </span>
-          {complete && (
+          {complete && targetUserId && (
             <span className="font-semibold text-teal-700">
               Escore global: {result.score}/100
             </span>

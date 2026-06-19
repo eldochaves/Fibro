@@ -69,7 +69,7 @@ export default async function FiqrPage() {
         {history.length > 0 && (
           <div className="mt-10">
             <h2 className="mb-3 text-sm font-semibold text-navy-700">
-              Respostas anteriores ({history.length})
+              Suas respostas anteriores ({history.length})
             </h2>
             <ul className="space-y-3">
               {history.map((h) => (
@@ -77,24 +77,21 @@ export default async function FiqrPage() {
                   key={h.id}
                   className="card flex items-center justify-between"
                 >
-                  <div>
-                    <div className="text-sm font-semibold text-navy-800">
-                      {formatDate(h.created_at)}
+                  <span className="text-sm font-semibold text-navy-800">
+                    {formatDate(h.created_at)}
                     {h.by_doctor && (
-                      <span className="ml-2 rounded-full bg-navy-100 px-2 py-0.5 text-[11px] font-medium text-navy-600">👨‍⚕️ pelo médico</span>
+                      <span className="ml-2 rounded-full bg-navy-100 px-2 py-0.5 text-[11px] font-medium text-navy-600">
+                        👨‍⚕️ pelo médico
+                      </span>
                     )}
-                    </div>
-                    {h.summary && (
-                      <div className="mt-1 text-xs text-navy-400">
-                        Função {h.summary.function}/30 · Impacto{" "}
-                        {h.summary.overall}/20 · Sintomas {h.summary.symptoms}/50
-                      </div>
-                    )}
-                  </div>
-                  <span className="chip-teal">{h.score}/100</span>
+                  </span>
+                  <span className="chip-teal">Enviado ✓</span>
                 </li>
               ))}
             </ul>
+            <p className="mt-3 text-center text-xs text-navy-400">
+              Os resultados são analisados pelo Dr. Eldo no seu acompanhamento.
+            </p>
           </div>
         )}
       </main>

@@ -89,32 +89,26 @@ export default async function ScoredQuestionnairePage({
         {history.length > 0 && (
           <div className="mt-10">
             <h2 className="mb-3 text-sm font-semibold text-navy-700">
-              Respostas anteriores ({history.length})
+              Suas respostas anteriores ({history.length})
             </h2>
             <ul className="space-y-3">
               {history.map((h) => (
                 <li key={h.id} className="card flex items-center justify-between">
-                  <div className="text-sm font-semibold text-navy-800">
+                  <span className="text-sm font-semibold text-navy-800">
                     {formatDate(h.created_at)}
-                    {h.summary?.category && (
-                      <span className="ml-2 font-normal text-navy-400">
-                        {h.summary.category}
+                    {h.by_doctor && (
+                      <span className="ml-2 rounded-full bg-navy-100 px-2 py-0.5 text-[11px] font-medium text-navy-600">
+                        👨‍⚕️ pelo médico
                       </span>
                     )}
-                    {typeof h.summary?.met === "boolean" && (
-                      <span className="ml-2 font-normal text-navy-400">
-                        {h.summary.met ? "Atende" : "Não atende"}
-                      </span>
-                    )}
-                  </div>
-                  <span className="chip-teal">
-                    {isCriteria
-                      ? `${h.score}/${meta.maxScore} itens`
-                      : `${h.score}/${meta.maxScore}`}
                   </span>
+                  <span className="chip-teal">Enviado ✓</span>
                 </li>
               ))}
             </ul>
+            <p className="mt-3 text-center text-xs text-navy-400">
+              Os resultados são analisados pelo Dr. Eldo no seu acompanhamento.
+            </p>
           </div>
         )}
       </main>

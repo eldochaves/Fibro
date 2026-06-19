@@ -11,6 +11,7 @@ import {
 } from "@/lib/criteria";
 import { CRITERIA_DEFS } from "@/lib/criteria";
 import { saveCriteria, adminSaveCriteria } from "@/app/actions";
+import { PatientSubmitted } from "@/components/PatientSubmitted";
 
 export function CriteriaForm({
   questionnaireKey,
@@ -41,6 +42,15 @@ export function CriteriaForm({
   }
 
   if (saved) {
+    if (!targetUserId)
+      return (
+        <PatientSubmitted
+          onBack={() => {
+            router.push("/inicio");
+            router.refresh();
+          }}
+        />
+      );
     return (
       <div className="space-y-5">
         <div className="card flex flex-col items-center gap-3 text-center">
@@ -133,7 +143,7 @@ export function CriteriaForm({
         )}
       </section>
 
-      {complete && (
+      {complete && targetUserId && (
         <div
           className={`card text-sm font-medium ${
             result.met

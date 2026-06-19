@@ -10,6 +10,7 @@ import {
 } from "@/lib/scored";
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { saveScored, adminSaveScored } from "@/app/actions";
+import { PatientSubmitted } from "@/components/PatientSubmitted";
 
 export function ScoredChoiceForm({
   questionnaireKey,
@@ -42,6 +43,15 @@ export function ScoredChoiceForm({
   }
 
   if (saved) {
+    if (!targetUserId)
+      return (
+        <PatientSubmitted
+          onBack={() => {
+            router.push("/inicio");
+            router.refresh();
+          }}
+        />
+      );
     return (
       <div className="space-y-5">
         <div className="card flex flex-col items-center gap-3 text-center">
@@ -139,7 +149,7 @@ export function ScoredChoiceForm({
           <span>
             Respondidas: <strong>{answered}</strong> de {total}
           </span>
-          {complete && (
+          {complete && targetUserId && (
             <span className="font-semibold text-teal-700">
               Escore: {result.total}/{def.maxScore}
             </span>

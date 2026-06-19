@@ -60,6 +60,14 @@ export default async function InicioPage() {
     };
   });
 
+  // Disponíveis primeiro, depois agendados, por fim concluídos.
+  const rank = (s: string) =>
+    s === "available" ? 0 : s === "scheduled" ? 1 : 2;
+  const orderedItems = [...items].sort(
+    (a, b) => rank(a.status) - rank(b.status)
+  );
+  const availableCount = items.filter((i) => i.status === "available").length;
+
   const hasSomething = assigned.length > 0 || diaryEnabled;
 
   return (
@@ -77,11 +85,23 @@ export default async function InicioPage() {
             </h1>
           </div>
         </div>
-        <p className="mt-2 text-navy-500">
+        <p className="mt-2 text-base text-navy-500">
           {hasSomething
-            ? "Escolha uma das opções abaixo para começar."
+            ? availableCount > 0
+              ? `Você tem ${availableCount} ${
+                  availableCount === 1
+                    ? "questionário disponível"
+                    : "questionários disponíveis"
+                } para responder. Leva poucos minutos. 💙`
+              : "Tudo em dia por aqui! Quando houver algo novo, aparecerá nesta tela."
             : "Assim que o seu médico liberar um questionário, ele aparecerá aqui."}
         </p>
+        {hasSomething && (
+          <p className="mt-1 text-sm text-navy-400">
+            É só responder com sinceridade — quem analisa os resultados é o Dr.
+            Eldo, no seu acompanhamento.
+          </p>
+        )}
 
         {!hasSomething ? (
           <div className="card mt-6 text-center">
@@ -93,7 +113,7 @@ export default async function InicioPage() {
           </div>
         ) : (
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {items.map(({ q, status, nextDate }) =>
+            {orderedItems.map(({ q, status, nextDate }) =>
               status === "available" ? (
                 <ActionCard
                   key={q.key}
@@ -101,7 +121,8 @@ export default async function InicioPage() {
                   icon={q.icon}
                   title={q.name}
                   desc={q.description}
-                  cta="Preencher"
+                  cta="Responder"
+                  badge="Disponível agora"
                 />
               ) : (
                 <LockedCard
@@ -170,26 +191,35 @@ function ActionCard({
   title,
   desc,
   cta,
+  badge,
 }: {
   href: string;
   icon: string;
   title: string;
   desc: string;
   cta: string;
+  badge?: string;
 }) {
   return (
     <Link
       href={href}
       className="card group flex flex-col transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-card"
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-2xl">
-        {icon}
+      <div className="flex items-center justify-between">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-2xl">
+          {icon}
+        </div>
+        {badge && (
+          <span className="rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-semibold text-teal-700">
+            {badge}
+          </span>
+        )}
       </div>
       <h2 className="mt-4 font-display text-lg font-semibold text-navy-800">
         {title}
       </h2>
       <p className="mt-1 flex-1 text-sm text-navy-500">{desc}</p>
-      <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal-700">
+      <span className="mt-4 inline-flex items-center gap-1 text-base font-semibold text-teal-700">
         {cta}
         <span className="transition group-hover:translate-x-0.5">→</span>
       </span>

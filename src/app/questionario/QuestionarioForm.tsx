@@ -16,12 +16,13 @@ import {
 import { saveAssessment, adminSaveAssessment } from "@/app/actions";
 import { BodyMap } from "@/components/BodyMap";
 import { FaceScale } from "@/components/FaceScale";
+import { PatientSubmitted } from "@/components/PatientSubmitted";
 
 const STEPS = [
   "Áreas de dor",
   "Severidade",
   "Outros sintomas",
-  "Resultado",
+  "Finalizar",
 ] as const;
 
 export function QuestionarioForm({ targetUserId }: { targetUserId?: string }) {
@@ -295,13 +296,16 @@ export function QuestionarioForm({ targetUserId }: { targetUserId?: string }) {
           {!saved ? (
             <>
               <div>
-                <h2 className="font-display text-xl font-semibold text-navy-800">Confira e finalize</h2>
+                <h2 className="font-display text-xl font-semibold text-navy-800">
+                  {targetUserId ? "Confira e finalize" : "Tudo pronto!"}
+                </h2>
                 <p className="text-sm text-navy-500">
-                  Revise o resumo abaixo e toque em salvar para enviar ao seu
-                  médico.
+                  {targetUserId
+                    ? "Revise o resumo abaixo e toque em salvar para registrar."
+                    : "Obrigado por responder com calma. Toque em enviar e suas respostas irão direto para o Dr. Eldo Chaves."}
                 </p>
               </div>
-              <ResultCard result={result} preview />
+              {targetUserId && <ResultCard result={result} preview />}
               {error && (
                 <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
                   {error}
@@ -309,12 +313,19 @@ export function QuestionarioForm({ targetUserId }: { targetUserId?: string }) {
               )}
               <button
                 onClick={handleSave}
-                className="btn-primary w-full"
+                className="btn-primary w-full text-base"
                 disabled={saving}
               >
-                {saving ? "Salvando..." : "Salvar avaliação"}
+                {saving ? "Enviando..." : "Enviar avaliação"}
               </button>
             </>
+          ) : !targetUserId ? (
+            <PatientSubmitted
+              onBack={() => {
+                router.push("/inicio");
+                router.refresh();
+              }}
+            />
           ) : (
             <>
               <div className="card flex flex-col items-center gap-3 text-center">
@@ -323,19 +334,18 @@ export function QuestionarioForm({ targetUserId }: { targetUserId?: string }) {
                 </div>
                 <h2 className="font-display text-xl font-semibold text-navy-800">Avaliação enviada!</h2>
                 <p className="text-sm text-navy-500">
-                  Suas respostas foram salvas. Você pode mostrar este resultado
-                  ao seu médico.
+                  Registrada na ficha do paciente.
                 </p>
               </div>
               <ResultCard result={result} />
               <button
                 onClick={() => {
-                  router.push(targetUserId ? `/admin/${targetUserId}` : "/historico");
+                  router.push(`/admin/${targetUserId}`);
                   router.refresh();
                 }}
                 className="btn-primary w-full"
               >
-                {targetUserId ? "Voltar à ficha do paciente" : "Ver meu histórico"}
+                Voltar à ficha do paciente
               </button>
             </>
           )}

@@ -12,6 +12,7 @@ import {
   type WomacAnswers,
 } from "@/lib/womac";
 import { saveWomac, adminSaveWomac } from "@/app/actions";
+import { PatientSubmitted } from "@/components/PatientSubmitted";
 
 export function WomacForm({ targetUserId }: { targetUserId?: string }) {
   const router = useRouter();
@@ -36,6 +37,15 @@ export function WomacForm({ targetUserId }: { targetUserId?: string }) {
   }
 
   if (saved) {
+    if (!targetUserId)
+      return (
+        <PatientSubmitted
+          onBack={() => {
+            router.push("/inicio");
+            router.refresh();
+          }}
+        />
+      );
     return (
       <div className="space-y-5">
         <div className="card flex flex-col items-center gap-3 text-center">
@@ -107,7 +117,7 @@ export function WomacForm({ targetUserId }: { targetUserId?: string }) {
           <span>
             Respondidas: <strong>{answered}</strong> de {WOMAC_ITEMS.length}
           </span>
-          {complete && (
+          {complete && targetUserId && (
             <span className="font-semibold text-teal-700">
               Total: {result.total}/96
             </span>
