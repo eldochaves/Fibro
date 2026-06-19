@@ -400,7 +400,7 @@ export default async function PatientDetailPage({
             <div className="flex shrink-0 flex-col items-end gap-2 print:hidden">
               <PrintButton />
               <Link
-                href={`/admin/convite?name=${encodeURIComponent(
+                href={`/admin/convite?user=${profile.id}&name=${encodeURIComponent(
                   profile.full_name || ""
                 )}&phone=${encodeURIComponent(profile.phone || "")}`}
                 className="text-sm font-medium text-teal-600 hover:underline"

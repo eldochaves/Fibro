@@ -11,12 +11,12 @@ export const dynamic = "force-dynamic";
 export default async function ConvitePage({
   searchParams,
 }: {
-  searchParams: Promise<{ phone?: string; name?: string }>;
+  searchParams: Promise<{ phone?: string; name?: string; user?: string }>;
 }) {
   const { user, isAdmin } = await getContext();
   if (!isAdmin) redirect("/historico");
 
-  const { phone, name } = await searchParams;
+  const { phone, name, user: targetUserId } = await searchParams;
 
   return (
     <>
@@ -41,7 +41,11 @@ export default async function ConvitePage({
             envie.
           </div>
         )}
-        <ConviteGenerator siteUrl={SITE_URL} initialPhone={phone ?? ""} />
+        <ConviteGenerator
+          siteUrl={SITE_URL}
+          initialPhone={phone ?? ""}
+          targetUserId={targetUserId}
+        />
       </main>
       <Footer />
     </>

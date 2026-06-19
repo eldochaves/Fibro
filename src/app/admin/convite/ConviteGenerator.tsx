@@ -6,20 +6,26 @@ import {
   QUESTIONNAIRES,
   DISEASES,
   DISEASE_LABEL,
+  TENDINITE_SUBTYPES,
 } from "@/lib/questionnaires";
 import { diseaseTheme } from "@/lib/diseaseTheme";
 import { buildWhatsappLink, buildMailtoLink } from "@/lib/whatsapp";
+import { adminSendInfiltracao } from "@/app/actions";
 
 export function ConviteGenerator({
   siteUrl,
   initialPhone = "",
+  targetUserId,
 }: {
   siteUrl: string;
   initialPhone?: string;
+  targetUserId?: string;
 }) {
   const [key, setKey] = useState(QUESTIONNAIRES[0]?.key ?? "");
   const [phone, setPhone] = useState(initialPhone);
   const [copied, setCopied] = useState(false);
+  const [sites, setSites] = useState<string[]>([]);
+  const [sentSites, setSentSites] = useState(false);
 
   const def = QUESTIONNAIRES.find((q) => q.key === key);
   const link = `${siteUrl}/c/${key}`;
@@ -118,6 +124,63 @@ export function ConviteGenerator({
           </p>
         )}
       </div>
+
+      {/* Locais infiltrados — só para o feedback pós-infiltração */}
+      {key === "infiltracao_tend" && (
+        <div className="card">
+          <span className="label">Locais infiltrados</span>
+          <div className="flex flex-wrap gap-2">
+            {TENDINITE_SUBTYPES.map((s) => {
+              const active = sites.includes(s.key);
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => {
+                    setSentSites(false);
+                    setSites((prev) =>
+                      prev.includes(s.key)
+                        ? prev.filter((k) => k !== s.key)
+                        : [...prev, s.key]
+                    );
+                  }}
+                  aria-pressed={active}
+                  className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                    active
+                      ? "border-purple-500 bg-purple-100 text-purple-800 ring-1 ring-purple-400"
+                      : "border-navy-200 bg-white text-navy-600 hover:border-navy-300"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+          {targetUserId ? (
+            <div className="mt-3 flex items-center gap-3">
+              <button
+                type="button"
+                disabled={sites.length === 0}
+                onClick={async () => {
+                  const r = await adminSendInfiltracao(targetUserId, sites);
+                  if (r.ok) setSentSites(true);
+                }}
+                className="btn-outline text-sm"
+              >
+                Registrar locais para este paciente
+              </button>
+              {sentSites && (
+                <span className="text-sm text-teal-700">✓ Registrado</span>
+              )}
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-navy-400">
+              Sem um paciente selecionado, o próprio paciente confirma os locais
+              ao responder.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* QR + link */}
       <div className="card flex flex-col items-center gap-4 text-center">
