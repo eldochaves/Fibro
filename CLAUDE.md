@@ -27,6 +27,14 @@ diagnóstico ou classificatório (e o ano/autor da referência). Incluir a EVA
 (0–10) para quantificar a dor quando fizer sentido. Cada doença recebe cor +
 ícone em `src/lib/diseaseTheme.ts`.
 
+## Manutenção — informações ao paciente (links das sociedades)
+Os textos e links educativos por doença ficam em `src/lib/diseaseInfo.ts`
+(exibidos em `/saude`). Os links apontam para materiais oficiais (SBR etc.).
+**Revisar periodicamente (sugestão: a cada 6 meses)**: conferir se os links
+continuam no ar e se há cartilhas novas. Como o site da SBR bloqueia acesso
+automatizado (403), a verificação dos URLs precisa ser feita clicando no
+navegador. Basta pedir "revisar os links de saúde" que a lista é reavaliada.
+
 ## Melhorias futuras / pendências
 
 ### Email automático do Diário de Dor (quando houver domínio próprio)

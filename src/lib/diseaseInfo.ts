@@ -38,6 +38,13 @@ export const DISEASE_INFO: Record<string, DiseaseInfo> = {
   fibromialgia: {
     summary:
       "A fibromialgia é uma condição de dor crônica espalhada pelo corpo, em geral acompanhada de cansaço, sono que não descansa e dificuldade de concentração. Ela não deforma as articulações e tem tratamento — que combina atividade física orientada, cuidado com o sono, manejo do estresse e, quando indicado, medicamentos. Pequenos hábitos no dia a dia fazem bastante diferença.",
+    resources: [
+      {
+        title: "Fibromialgia — material para pacientes",
+        source: "Sociedade Brasileira de Reumatologia (SBR)",
+        url: "https://www.reumatologia.org.br/doencas-reumaticas/fibromialgia-e-doencas-articulares-inflamatorias/",
+      },
+    ],
   },
   lupus: {
     summary:
@@ -50,10 +57,24 @@ export const DISEASE_INFO: Record<string, DiseaseInfo> = {
   artrite_reumatoide: {
     summary:
       "A artrite reumatoide é uma doença inflamatória das articulações, de origem autoimune, que costuma causar dor, inchaço e rigidez — principalmente pela manhã. Começar o tratamento cedo ajuda a controlar a inflamação e a preservar o movimento das articulações.",
+    resources: [
+      {
+        title: "Artrite Reumatoide — material para pacientes",
+        source: "Sociedade Brasileira de Reumatologia (SBR)",
+        url: "https://www.reumatologia.org.br/doencas-reumaticas/artrite-reumatoide/",
+      },
+    ],
   },
   osteoartrite: {
     summary:
       "A osteoartrite (também chamada de artrose) é o desgaste da cartilagem das articulações, comum com o passar dos anos, causando dor e rigidez — sobretudo em joelhos, quadris e mãos. Manter-se ativo, fortalecer a musculatura e cuidar do peso fazem parte importante do tratamento.",
+    resources: [
+      {
+        title: "Osteoartrite (Artrose) — material para pacientes",
+        source: "Sociedade Brasileira de Reumatologia (SBR)",
+        url: "https://www.reumatologia.org.br/doencas-reumaticas/osteoartrite-artrose/",
+      },
+    ],
   },
   dor_cronica: {
     summary:
