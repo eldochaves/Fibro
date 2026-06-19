@@ -369,7 +369,17 @@ export default async function PatientDetailPage({
                 <p className="text-sm text-navy-400">{profile.email}</p>
               </div>
             </div>
-            <PrintButton />
+            <div className="flex shrink-0 flex-col items-end gap-2 print:hidden">
+              <PrintButton />
+              <Link
+                href={`/admin/convite?name=${encodeURIComponent(
+                  profile.full_name || ""
+                )}&phone=${encodeURIComponent(profile.phone || "")}`}
+                className="text-sm font-medium text-teal-600 hover:underline"
+              >
+                📲 Convite / QR
+              </Link>
+            </div>
           </div>
           <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-navy-400">
             {profile.cpf && <span>CPF: {formatCPF(profile.cpf)}</span>}

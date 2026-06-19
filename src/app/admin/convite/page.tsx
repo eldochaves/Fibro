@@ -8,9 +8,15 @@ import { ConviteGenerator } from "./ConviteGenerator";
 
 export const dynamic = "force-dynamic";
 
-export default async function ConvitePage() {
+export default async function ConvitePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ phone?: string; name?: string }>;
+}) {
   const { user, isAdmin } = await getContext();
   if (!isAdmin) redirect("/historico");
+
+  const { phone, name } = await searchParams;
 
   return (
     <>
@@ -29,7 +35,13 @@ export default async function ConvitePage() {
           Gere um QR Code para mostrar no consultório, ou um link para enviar
           antes da consulta. O paciente se cadastra e o questionário abre na hora.
         </p>
-        <ConviteGenerator siteUrl={SITE_URL} />
+        {name && (
+          <div className="mb-4 rounded-xl border border-teal-100 bg-teal-50/60 px-4 py-2.5 text-sm text-navy-700">
+            Convite para <strong>{name}</strong> — escolha o questionário e
+            envie.
+          </div>
+        )}
+        <ConviteGenerator siteUrl={SITE_URL} initialPhone={phone ?? ""} />
       </main>
       <Footer />
     </>

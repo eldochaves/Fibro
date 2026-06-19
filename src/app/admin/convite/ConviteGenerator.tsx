@@ -10,9 +10,15 @@ import {
 import { diseaseTheme } from "@/lib/diseaseTheme";
 import { buildWhatsappLink, buildMailtoLink } from "@/lib/whatsapp";
 
-export function ConviteGenerator({ siteUrl }: { siteUrl: string }) {
+export function ConviteGenerator({
+  siteUrl,
+  initialPhone = "",
+}: {
+  siteUrl: string;
+  initialPhone?: string;
+}) {
   const [key, setKey] = useState(QUESTIONNAIRES[0]?.key ?? "");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(initialPhone);
   const [copied, setCopied] = useState(false);
 
   const def = QUESTIONNAIRES.find((q) => q.key === key);
