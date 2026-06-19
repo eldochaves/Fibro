@@ -13,7 +13,13 @@ import {
 } from "@/lib/infiltracao";
 import { saveInfiltracao, adminSaveInfiltracao } from "@/app/actions";
 
-export function InfiltracaoForm({ targetUserId }: { targetUserId?: string }) {
+export function InfiltracaoForm({
+  targetUserId,
+  sites = [],
+}: {
+  targetUserId?: string;
+  sites?: string[];
+}) {
   const router = useRouter();
   const [a, setA] = useState<InfiltracaoAnswers>({});
   const [saving, setSaving] = useState(false);
@@ -74,6 +80,11 @@ export function InfiltracaoForm({ targetUserId }: { targetUserId?: string }) {
         Este é um retorno sobre a <strong>infiltração</strong> (com lidocaína e
         betametasona) que você realizou. Suas respostas ajudam o Dr. Eldo a
         cuidar de você e de outros pacientes. 💙
+        {sites.length > 0 && (
+          <span className="mt-1 block text-teal-700">
+            Local(is): <strong>{sites.join(", ")}</strong>
+          </span>
+        )}
       </div>
 
       {/* PGIC */}

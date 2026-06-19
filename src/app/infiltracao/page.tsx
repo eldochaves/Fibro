@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getContext, isProfileComplete } from "@/lib/session";
 import { normalizeFrequency, isAvailableNow } from "@/lib/availability";
+import { REGION_LABEL } from "@/lib/questionnaires";
 import { InfiltracaoForm } from "./InfiltracaoForm";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,15 @@ export default async function InfiltracaoPage() {
     .eq("questionnaire_key", "infiltracao_tend")
     .order("created_at", { ascending: false });
   const history = (data ?? []) as QrRow[];
+
+  const { data: sitesRow } = await supabase
+    .from("profiles")
+    .select("infiltracao_sites")
+    .eq("id", user.id)
+    .maybeSingle();
+  const sites = (
+    ((sitesRow?.infiltracao_sites as string[]) ?? []) as string[]
+  ).map((k) => REGION_LABEL[k] ?? k);
 
   const freq = normalizeFrequency(
     profile?.questionnaire_freq?.["infiltracao_tend"]
@@ -55,7 +65,7 @@ export default async function InfiltracaoPage() {
         </p>
 
         {available ? (
-          <InfiltracaoForm />
+          <InfiltracaoForm sites={sites} />
         ) : (
           <div className="card text-center text-navy-500">
             <div className="mb-2 text-3xl">✅</div>

@@ -35,6 +35,7 @@ import {
   hasOpenRequest,
 } from "@/lib/availability";
 import { RequestQuestionnaire, type RequestItem } from "./RequestQuestionnaire";
+import { InfiltracaoDispatcher } from "./InfiltracaoDispatcher";
 import {
   BODY_AREAS,
   SSS_SEVERITY_ITEMS,
@@ -71,6 +72,8 @@ function summaryLine(key: string, s: Record<string, unknown> | null): string {
     return `Gravidade ${s.severity}/10 · Interferência ${s.interference}/10`;
   if (key === "infiltracao_tend") {
     const parts: string[] = [];
+    if (Array.isArray(s.sites) && s.sites.length > 0)
+      parts.push(`Locais: ${(s.sites as string[]).join(", ")}`);
     if (s.pgic) parts.push(`Evolução: ${s.pgic}`);
     parts.push(`Satisfação ${s.satisfacao}/10`);
     if (s.efeito)
@@ -108,6 +111,7 @@ export default async function PatientDetailPage({
     { data: assessments },
     { data: episodes },
     { data: fiqrData },
+    { data: sitesRow },
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -134,9 +138,18 @@ export default async function PatientDetailPage({
       .select("id, questionnaire_key, created_at, score, summary, by_doctor")
       .eq("user_id", userId)
       .order("created_at", { ascending: false }),
+    // Separado e tolerante: se a migração 015 não rodou, ignora.
+    supabase
+      .from("profiles")
+      .select("infiltracao_sites")
+      .eq("id", userId)
+      .maybeSingle(),
   ]);
 
   if (!profile) notFound();
+  const infiltracaoSites =
+    ((sitesRow as { infiltracao_sites?: string[] } | null)
+      ?.infiltracao_sites as string[]) ?? [];
   const list = assessments ?? [];
   const painEpisodes = episodes ?? [];
 
@@ -450,6 +463,11 @@ export default async function PatientDetailPage({
               </p>
               <RequestQuestionnaire userId={profile.id} items={requestItems} />
             </div>
+
+            <InfiltracaoDispatcher
+              userId={profile.id}
+              initialSites={infiltracaoSites}
+            />
 
             <PainDiaryToggle
               userId={profile.id}

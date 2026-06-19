@@ -24,7 +24,7 @@ import { SCORED_DEFS } from "@/lib/lequesne";
 import { computeCriteria, CRITERIA_DEFS } from "@/lib/criteria";
 import { computeLikert } from "@/lib/likert";
 import { LIKERT_DEFS } from "@/lib/koos";
-import { QUESTIONNAIRE_BY_KEY } from "@/lib/questionnaires";
+import { QUESTIONNAIRE_BY_KEY, REGION_LABEL } from "@/lib/questionnaires";
 import type { DiseaseResource } from "@/lib/diseaseInfo";
 
 /** Salva uma avaliação ACR 2016 para o usuário autenticado. */
@@ -824,6 +824,48 @@ export async function saveBpi(answers: Record<string, number>) {
   return { ok: true as const, result: r };
 }
 
+async function infiltracaoSiteLabels(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<string[]> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("infiltracao_sites")
+    .eq("id", userId)
+    .maybeSingle();
+  const keys: string[] = (data?.infiltracao_sites as string[]) ?? [];
+  return keys.map((k) => REGION_LABEL[k] ?? k);
+}
+
+/** Médico encaminha o feedback de infiltração marcando os locais infiltrados. */
+export async function adminSendInfiltracao(userId: string, sites: string[]) {
+  const supabase = await requireAdmin();
+  const { data: p } = await supabase
+    .from("profiles")
+    .select("questionnaires, questionnaire_requests")
+    .eq("id", userId)
+    .maybeSingle();
+  const questionnaires: string[] = p?.questionnaires ?? [];
+  const requests: Record<string, string> = p?.questionnaire_requests ?? {};
+  requests["infiltracao_tend"] = new Date().toISOString();
+  const nextAssigned = questionnaires.includes("infiltracao_tend")
+    ? questionnaires
+    : [...questionnaires, "infiltracao_tend"];
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      infiltracao_sites: sites,
+      questionnaires: nextAssigned,
+      questionnaire_requests: requests,
+    })
+    .eq("id", userId);
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath(`/admin/${userId}`);
+  revalidatePath("/admin");
+  return { ok: true as const };
+}
+
 /** Paciente envia o feedback pós-infiltração. */
 export async function saveInfiltracao(answers: InfiltracaoAnswers) {
   const supabase = await createClient();
@@ -831,7 +873,8 @@ export async function saveInfiltracao(answers: InfiltracaoAnswers) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  const s = infiltracaoSummary(answers);
+  const sites = await infiltracaoSiteLabels(supabase, user.id);
+  const s = { ...infiltracaoSummary(answers), sites };
   const { error } = await supabase.from("questionnaire_responses").insert({
     user_id: user.id,
     questionnaire_key: "infiltracao_tend",
@@ -848,7 +891,9 @@ export async function adminSaveInfiltracao(
   userId: string,
   answers: InfiltracaoAnswers
 ) {
-  const s = infiltracaoSummary(answers);
+  const supabase = await requireAdmin();
+  const sites = await infiltracaoSiteLabels(supabase, userId);
+  const s = { ...infiltracaoSummary(answers), sites };
   return adminSaveResponse(
     userId,
     "infiltracao_tend",

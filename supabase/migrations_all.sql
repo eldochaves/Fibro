@@ -226,3 +226,9 @@ create policy "disease_info_admin"
 -- ---------------------------------------------------------------------
 alter table public.profiles
   add column if not exists admin_last_seen_at timestamptz;
+
+-- ---------------------------------------------------------------------
+-- 015 — Locais infiltrados (feedback pós-infiltração)
+-- ---------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists infiltracao_sites jsonb not null default '[]'::jsonb;

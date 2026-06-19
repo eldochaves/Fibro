@@ -538,6 +538,18 @@ export const REGION_ORDER = [
   "tend_aquiles",
 ];
 
+/** Subtipos de tendinite (para marcar os locais infiltrados). */
+export const TENDINITE_SUBTYPES = [
+  "manguito_rotador",
+  "tend_calcaria",
+  "epicondilite_lateral",
+  "epicondilite_medial",
+  "de_quervain",
+  "dedo_gatilho",
+  "tend_patelar",
+  "tend_aquiles",
+].map((key) => ({ key, label: REGION_LABEL[key] }));
+
 export const CRITERION_TYPE_LABEL: Record<string, string> = {
   diagnostico: "Critério diagnóstico",
   classificatorio: "Critério classificatório",
