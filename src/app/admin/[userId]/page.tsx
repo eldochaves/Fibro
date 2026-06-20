@@ -37,6 +37,10 @@ import {
 import { RequestQuestionnaire, type RequestItem } from "./RequestQuestionnaire";
 import { InfiltracaoDispatcher } from "./InfiltracaoDispatcher";
 import {
+  InfiltracaoFeedback,
+  type InfiltracaoRow,
+} from "./InfiltracaoFeedback";
+import {
   BODY_AREAS,
   SSS_SEVERITY_ITEMS,
   SSS_SYMPTOM_ITEMS,
@@ -198,12 +202,15 @@ export default async function PatientDetailPage({
   const rowsByKey = new Map<string, ResultRow[]>();
   const dataDefs: QuestionnaireDef[] = [];
   for (const def of QUESTIONNAIRES) {
+    // O feedback pós-infiltração tem painel próprio (agrupado por local).
+    if (def.key === "infiltracao_tend") continue;
     const rows = buildRows(def);
     if (rows.length > 0) {
       rowsByKey.set(def.key, rows);
       dataDefs.push(def);
     }
   }
+  const infiltracaoRows = (qrByKey.get("infiltracao_tend") ?? []) as InfiltracaoRow[];
 
   // Agrupa os questionários com respostas por doença (na ordem: doenças atuais
   // do paciente primeiro) e, dentro da doença, por região anatômica.
@@ -502,7 +509,9 @@ export default async function PatientDetailPage({
               </ul>
             </div>
 
-            {diseaseGroups.length === 0 && genericDefs.length === 0 ? (
+            {diseaseGroups.length === 0 &&
+            genericDefs.length === 0 &&
+            infiltracaoRows.length === 0 ? (
               <div className="card text-navy-500">
                 Nenhuma resposta registrada ainda. Libere questionários na aba{" "}
                 <strong>Acompanhamento</strong>.
@@ -539,6 +548,8 @@ export default async function PatientDetailPage({
                     </section>
                   );
                 })}
+
+                <InfiltracaoFeedback rows={infiltracaoRows} />
 
                 {genericDefs.length > 0 && (
                   <section>
