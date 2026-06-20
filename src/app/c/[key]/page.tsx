@@ -24,8 +24,11 @@ export default async function ConvitePage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Não logado → login, voltando para cá depois
-  if (!user) redirect(`/login?next=${encodeURIComponent(`/c/${key}`)}`);
+  // Caminho de volta preservando os locais marcados (?sites=...)
+  const selfPath = `/c/${key}${sites ? `?sites=${encodeURIComponent(sites)}` : ""}`;
+
+  // Não logado → login, voltando para cá depois (mantendo os locais)
+  if (!user) redirect(`/login?next=${encodeURIComponent(selfPath)}`);
 
   const { data: isAdmin } = await supabase.rpc("is_admin");
   if (isAdmin) redirect("/admin");
