@@ -11,14 +11,17 @@ import {
 import { diseaseTheme } from "@/lib/diseaseTheme";
 import { buildWhatsappLink, buildMailtoLink } from "@/lib/whatsapp";
 import { adminSendInfiltracao } from "@/app/actions";
+import { CLINIC_NAME } from "@/lib/config";
 
 export function ConviteGenerator({
   siteUrl,
   initialPhone = "",
+  initialName = "",
   targetUserId,
 }: {
   siteUrl: string;
   initialPhone?: string;
+  initialName?: string;
   targetUserId?: string;
 }) {
   const [key, setKey] = useState(QUESTIONNAIRES[0]?.key ?? "");
@@ -56,13 +59,27 @@ export function ConviteGenerator({
 
   const diseaseTags = (def?.diseases ?? []).map((d) => DISEASE_LABEL[d] ?? d);
 
-  const message = useMemo(
-    () =>
-      `Olá! O Dr. Eldo Chaves preparou um questionário para você responder ` +
-      `antes da consulta: ${def?.name ?? ""}. Acesse o link, faça seu cadastro ` +
-      `e responda — é rápido e gratuito: ${link}`,
-    [def, link]
-  );
+  const message = useMemo(() => {
+    const hi = initialName ? `Olá, ${initialName.split(" ")[0]}!` : "Olá!";
+    if (key === "infiltracao_tend") {
+      return (
+        `${hi} Aqui é da ${CLINIC_NAME}. 💙\n\n` +
+        `Gostaríamos de saber como você está após a sua infiltração. ` +
+        `Seu retorno ajuda muito no acompanhamento e leva poucos minutos.\n\n` +
+        `👉 Responda aqui: ${link}\n\n` +
+        `Qualquer dúvida, estamos à disposição. Cuide-se!`
+      );
+    }
+    return (
+      `${hi} Aqui é da ${CLINIC_NAME}. 👋\n\n` +
+      `Para cuidarmos melhor de você, o Dr. Eldo preparou um questionário rápido: ` +
+      `*${def?.name ?? ""}*.\n` +
+      `É simples, leva poucos minutos e seus dados ficam seguros. Você só responde — ` +
+      `quem avalia os resultados é o seu médico.\n\n` +
+      `👉 Acesse: ${link}\n\n` +
+      `Qualquer dúvida, estamos à disposição!`
+    );
+  }, [def, link, key, initialName]);
 
   const wa = buildWhatsappLink(phone || "", message);
   const mail = buildMailtoLink(

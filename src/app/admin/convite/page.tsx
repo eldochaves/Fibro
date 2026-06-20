@@ -44,6 +44,7 @@ export default async function ConvitePage({
         <ConviteGenerator
           siteUrl={SITE_URL}
           initialPhone={phone ?? ""}
+          initialName={name ?? ""}
           targetUserId={targetUserId}
         />
       </main>
