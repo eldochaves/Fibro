@@ -26,6 +26,7 @@ export function ConviteGenerator({
 }) {
   const [key, setKey] = useState(QUESTIONNAIRES[0]?.key ?? "");
   const [phone, setPhone] = useState(initialPhone);
+  const [name, setName] = useState(initialName);
   const [copied, setCopied] = useState(false);
   const [sites, setSites] = useState<string[]>([]);
   const [sentSites, setSentSites] = useState(false);
@@ -60,7 +61,7 @@ export function ConviteGenerator({
   const diseaseTags = (def?.diseases ?? []).map((d) => DISEASE_LABEL[d] ?? d);
 
   const message = useMemo(() => {
-    const hi = initialName ? `Olá, ${initialName.split(" ")[0]}!` : "Olá!";
+    const hi = name.trim() ? `Olá, ${name.trim().split(" ")[0]}!` : "Olá!";
     if (key === "infiltracao_tend") {
       return (
         `${hi} Aqui é da ${CLINIC_NAME}. 💙\n\n` +
@@ -79,7 +80,7 @@ export function ConviteGenerator({
       `👉 Acesse: ${link}\n\n` +
       `Qualquer dúvida, estamos à disposição!`
     );
-  }, [def, link, key, initialName]);
+  }, [def, link, key, name]);
 
   const wa = buildWhatsappLink(phone || "", message);
   const mail = buildMailtoLink(
@@ -225,6 +226,12 @@ export function ConviteGenerator({
       {/* Enviar para o paciente */}
       <div className="card space-y-3">
         <span className="label">Enviar para o paciente</span>
+        <input
+          className="input"
+          placeholder="Nome do paciente (opcional, personaliza a mensagem)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         <input
           className="input"
           inputMode="tel"
