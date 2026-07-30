@@ -9,7 +9,11 @@ import {
   TENDINITE_SUBTYPES,
 } from "@/lib/questionnaires";
 import { diseaseTheme } from "@/lib/diseaseTheme";
-import { buildWhatsappLink, buildMailtoLink } from "@/lib/whatsapp";
+import {
+  buildWhatsappLink,
+  buildWhatsappBusinessLink,
+  buildMailtoLink,
+} from "@/lib/whatsapp";
 import { adminSendInfiltracao } from "@/app/actions";
 import { CLINIC_NAME } from "@/lib/config";
 
@@ -83,6 +87,7 @@ export function ConviteGenerator({
   }, [def, link, key, name]);
 
   const wa = buildWhatsappLink(phone || "", message);
+  const waBiz = buildWhatsappBusinessLink(phone || "", message);
   const mail = buildMailtoLink(
     "",
     `${def?.name ?? "Questionário"} — Dr. Eldo Chaves`,
@@ -240,7 +245,20 @@ export function ConviteGenerator({
           onChange={(e) => setPhone(e.target.value)}
         />
         <div className="grid gap-2 sm:grid-cols-2">
-          {wa ? (
+          {waBiz ? (
+            <a
+              href={waBiz}
+              className="btn-primary"
+              style={{ backgroundColor: "#075E54" }}
+            >
+              💼 WhatsApp Business
+            </a>
+          ) : (
+            <button className="btn-primary" disabled style={{ opacity: 0.5 }}>
+              💼 Informe o WhatsApp
+            </button>
+          )}
+          {wa && (
             <a
               href={wa}
               target="_blank"
@@ -248,12 +266,8 @@ export function ConviteGenerator({
               className="btn-primary"
               style={{ backgroundColor: "#25D366" }}
             >
-              💬 Enviar WhatsApp
+              💬 WhatsApp comum
             </a>
-          ) : (
-            <button className="btn-primary" disabled style={{ opacity: 0.5 }}>
-              💬 Informe o WhatsApp
-            </button>
           )}
           {mail && (
             <a href={mail} className="btn-outline">
@@ -262,8 +276,9 @@ export function ConviteGenerator({
           )}
         </div>
         <p className="text-xs text-navy-400">
-          O link serve para qualquer paciente: cada um que acessar terá este
-          questionário liberado na própria conta.
+          O botão <strong>WhatsApp Business</strong> abre direto no app comercial
+          no Android. No iPhone, use o WhatsApp comum e, se aparecer a escolha,
+          selecione o Business (dá para definir como padrão no celular).
         </p>
       </div>
     </div>
