@@ -1,12 +1,39 @@
 /** Frequência de disponibilidade de um questionário para o paciente. */
-export type Frequency = "always" | "yearly" | "quarterly4" | "once";
+export type Frequency =
+  | "always"
+  | "weekly"
+  | "biweekly"
+  | "monthly"
+  | "quarterly"
+  | "quarterly4"
+  | "semiannual"
+  | "yearly"
+  | "once";
 
 export const DEFAULT_FREQUENCY: Frequency = "always";
 
+/** Incremento de cada frequência recorrente (dias ou meses). */
+const INTERVAL: Record<Frequency, { days?: number; months?: number }> = {
+  always: {},
+  once: {},
+  weekly: { days: 7 },
+  biweekly: { days: 14 },
+  monthly: { months: 1 },
+  quarterly: { months: 3 },
+  quarterly4: { months: 4 },
+  semiannual: { months: 6 },
+  yearly: { months: 12 },
+};
+
 export const FREQUENCY_OPTIONS: { key: Frequency; label: string }[] = [
   { key: "always", label: "Sempre disponível" },
-  { key: "yearly", label: "Uma vez ao ano" },
+  { key: "weekly", label: "Semanal" },
+  { key: "biweekly", label: "Quinzenal" },
+  { key: "monthly", label: "Mensal" },
+  { key: "quarterly", label: "Trimestral (3 meses)" },
   { key: "quarterly4", label: "A cada 4 meses" },
+  { key: "semiannual", label: "Semestral (6 meses)" },
+  { key: "yearly", label: "Anual" },
   { key: "once", label: "Apenas uma vez" },
 ];
 
@@ -14,9 +41,24 @@ export const FREQUENCY_LABEL: Record<Frequency, string> = Object.fromEntries(
   FREQUENCY_OPTIONS.map((o) => [o.key, o.label])
 ) as Record<Frequency, string>;
 
+const FREQUENCY_KEYS = new Set<string>(FREQUENCY_OPTIONS.map((o) => o.key));
+
 export function normalizeFrequency(v: string | undefined | null): Frequency {
-  if (v === "yearly" || v === "quarterly4" || v === "once") return v;
-  return "always";
+  return v && FREQUENCY_KEYS.has(v) ? (v as Frequency) : "always";
+}
+
+/** É uma frequência que se repete no tempo (não "always" nem "once")? */
+function isRecurring(freq: Frequency): boolean {
+  return freq !== "always" && freq !== "once";
+}
+
+/** Próxima data-limite a partir de uma data, conforme a frequência. */
+function addInterval(from: Date, freq: Frequency): Date {
+  const d = new Date(from);
+  const spec = INTERVAL[freq];
+  if (spec.days) d.setDate(d.getDate() + spec.days);
+  if (spec.months) d.setMonth(d.getMonth() + spec.months);
+  return d;
 }
 
 /**
@@ -34,11 +76,7 @@ export function nextAvailable(
   if (freq === "always") return null;
   if (freq === "once") return "never";
 
-  const last = new Date(lastISO);
-  const next = new Date(last);
-  if (freq === "yearly") next.setFullYear(next.getFullYear() + 1);
-  else if (freq === "quarterly4") next.setMonth(next.getMonth() + 4);
-
+  const next = addInterval(new Date(lastISO), freq);
   return next.getTime() <= Date.now() ? null : next;
 }
 
@@ -78,14 +116,9 @@ export function pendingSince(
 ): number | null {
   if (hasOpenRequest(requestedISO, lastISO)) return Date.parse(requestedISO!);
   if (!lastISO) return 0;
-  if (freq === "yearly" || freq === "quarterly4") {
-    const na = nextAvailable(freq, lastISO);
-    if (na === null) {
-      const d = new Date(lastISO);
-      if (freq === "yearly") d.setFullYear(d.getFullYear() + 1);
-      else d.setMonth(d.getMonth() + 4);
-      return d.getTime();
-    }
+  if (isRecurring(freq)) {
+    const next = addInterval(new Date(lastISO), freq);
+    if (next.getTime() <= Date.now()) return next.getTime();
   }
   return null;
 }
