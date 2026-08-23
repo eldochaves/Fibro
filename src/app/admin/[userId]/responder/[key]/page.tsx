@@ -11,6 +11,7 @@ import { WomacForm } from "@/app/womac/WomacForm";
 import { EvaForm } from "@/app/eva/EvaForm";
 import { BpiForm } from "@/app/bpi/BpiForm";
 import { InfiltracaoForm } from "@/app/infiltracao/InfiltracaoForm";
+import { AgulhamentoForm } from "@/app/agulhamento/AgulhamentoForm";
 import { ScoredChoiceForm } from "@/components/ScoredChoiceForm";
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { CriteriaForm } from "@/components/CriteriaForm";
@@ -118,6 +119,14 @@ export default async function AdminResponderPage({
               {def.name}
             </h1>
             <InfiltracaoForm targetUserId={userId} initialSites={infiltracaoSites} />
+          </>
+        )}
+        {key === "agulhamento_miofascial" && (
+          <>
+            <h1 className="mb-4 font-display text-2xl font-semibold text-navy-800">
+              {def.name}
+            </h1>
+            <AgulhamentoForm targetUserId={userId} />
           </>
         )}
         {SCORED_DEFS[key] && (

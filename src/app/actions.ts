@@ -19,6 +19,7 @@ import { computeWomac } from "@/lib/womac";
 import { computeEva } from "@/lib/eva";
 import { computeBpi } from "@/lib/bpi";
 import { siteSummary, type InfiltracaoAnswers } from "@/lib/infiltracao";
+import { agulhamentoSummary, type AgulhamentoAnswers } from "@/lib/agulhamento";
 import { computeScored } from "@/lib/scored";
 import { SCORED_DEFS } from "@/lib/lequesne";
 import { computeCriteria, CRITERIA_DEFS } from "@/lib/criteria";
@@ -907,6 +908,40 @@ export async function adminSaveInfiltracao(
   if (error) return { ok: false as const, error: error.message };
   revalidatePath(`/admin/${userId}`);
   return { ok: true as const };
+}
+
+/** Paciente envia a pesquisa de satisfação do agulhamento seco (miofascial). */
+export async function saveAgulhamento(answers: AgulhamentoAnswers) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const s = agulhamentoSummary(answers);
+  const { error } = await supabase.from("questionnaire_responses").insert({
+    user_id: user.id,
+    questionnaire_key: "agulhamento_miofascial",
+    answers,
+    score: s.satisfacao,
+    summary: s,
+  });
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/agulhamento");
+  return { ok: true as const };
+}
+
+export async function adminSaveAgulhamento(
+  userId: string,
+  answers: AgulhamentoAnswers
+) {
+  const s = agulhamentoSummary(answers);
+  return adminSaveResponse(
+    userId,
+    "agulhamento_miofascial",
+    answers as Record<string, unknown>,
+    s.satisfacao,
+    s
+  );
 }
 
 /** Paciente salva uma resposta de questionário "por escolhas pontuadas" (Lequesne). */

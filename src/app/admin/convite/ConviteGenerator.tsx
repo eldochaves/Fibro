@@ -66,10 +66,12 @@ export function ConviteGenerator({
 
   const message = useMemo(() => {
     const hi = name.trim() ? `Olá, ${name.trim().split(" ")[0]}!` : "Olá!";
-    if (key === "infiltracao_tend") {
+    if (key === "infiltracao_tend" || key === "agulhamento_miofascial") {
+      const proc =
+        key === "agulhamento_miofascial" ? "o seu agulhamento" : "a sua infiltração";
       return (
         `${hi} Aqui é da ${CLINIC_NAME}. 💙\n\n` +
-        `Gostaríamos de saber como você está após a sua infiltração. ` +
+        `Gostaríamos de saber como você está após ${proc}. ` +
         `Seu retorno ajuda muito no acompanhamento e leva poucos minutos.\n\n` +
         `👉 Responda aqui: ${link}\n\n` +
         `Qualquer dúvida, estamos à disposição. Cuide-se!`

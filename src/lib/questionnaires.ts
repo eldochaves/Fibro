@@ -197,6 +197,21 @@ export const QUESTIONNAIRES: QuestionnaireDef[] = [
     kind: "avaliacao",
   },
   {
+    key: "agulhamento_miofascial",
+    name: "Satisfação — Agulhamento (dry needling)",
+    short: "Miofascial · Pós-agulhamento",
+    description:
+      "Retorno do paciente após o agulhamento seco de pontos-gatilho (resposta, satisfação e depoimento).",
+    path: "/agulhamento",
+    icon: "🪡",
+    diseases: ["dor_miofascial"],
+    storage: "responses",
+    indexLabel: "Satisfação",
+    maxScore: 10,
+    kind: "avaliacao",
+    higherIsBetter: true,
+  },
+  {
     key: "delphi_miofascial",
     name: "Ponto-gatilho miofascial — Delphi 2017",
     short: "Miofascial · Delphi 2017",
